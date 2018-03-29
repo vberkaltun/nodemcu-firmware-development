@@ -2,7 +2,7 @@
  * MasterScanner.cpp
  * MASTER SCANNER - 23.03.2018
  * 
- * ==============================================================================
+ * =============================================================================
  *
  * The MIT License (MIT)
  * 
@@ -26,29 +26,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * ==============================================================================
+ * =============================================================================
  */
 
 #include "MasterScanner.h"
 
 void Scanner::onTriggeredConnected(uint8_t _array[], byte _count) {
 
-    // don't bother if user hasn't registered a callback
-    if (!onConnected) {
-        return;
-    }
+    if (_count != 0) {
 
-    onConnected(_array, _count);
+        // don't bother if user hasn't registered a callback
+        if (!onConnected) {
+            return;
+        }
+
+        onConnected(_array, _count);
+    }
 }
 
 void Scanner::onTriggeredDisconnected(uint8_t _array[], byte _count) {
 
-    // don't bother if user hasn't registered a callback
-    if (!onDisconnected) {
-        return;
-    }
+    if (_count != 0) {
 
-    onDisconnected(_array, _count);
+        // don't bother if user hasn't registered a callback
+        if (!onDisconnected) {
+            return;
+        }
+
+        onDisconnected(_array, _count);
+    }
+}
+
+void Scanner::cleanRange(uint8_t _startAddress, uint8_t _stopAddress, uint8_t _array[]) {
+
+    for (_startAddress; _startAddress <= _stopAddress; _stopAddress++)
+        givenData.connectedSlavesArray[_startAddress] = NULL;
 }
 
 // -----
@@ -98,41 +110,20 @@ void Scanner::setRange(unsigned long _intervalMillis) {
  */
 void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
 
-    if (_startAddress <= _stopAddress) {
+    if (_startAddress <= _stopAddress && _startAddress >= defaultData.startAddress && _stopAddress <= defaultData.stopAddress) {
 
-        if (_startAddress < (defaultData.startAddress))
-            givenData.startAddress = defaultData.startAddress;
-        else if (_startAddress > (defaultData.startAddress)) {
+        if (_startAddress > givenData.startAddress)
+            this->cleanRange(givenData.startAddress, _startAddress - 1, givenData.connectedSlavesArray);
 
-            if (_startAddress > (givenData.startAddress)) {
-                uint8_t startAddressPointer;
+        if (_stopAddress < givenData.stopAddress)
+            this->cleanRange(_stopAddress + 1, givenData.stopAddress, givenData.connectedSlavesArray);
 
-                for (startAddressPointer = givenData.startAddress; startAddressPointer < _startAddress; startAddressPointer++)
-                    givenData.connectedSlavesArray[startAddressPointer] = NULL;
-            }
-
-            givenData.startAddress = _startAddress;
-        }
-
-        if (_stopAddress > (defaultData.stopAddress))
-            givenData.stopAddress = defaultData.stopAddress;
-        else if (_stopAddress < (defaultData.stopAddress)) {
-
-            if (_stopAddress < (givenData.stopAddress)) {
-                uint8_t stopAddressPointer;
-
-                for (stopAddressPointer = givenData.stopAddress; stopAddressPointer > _stopAddress; stopAddressPointer--)
-                    givenData.connectedSlavesArray[stopAddressPointer] = NULL;
-            }
-
-            givenData.stopAddress = _stopAddress;
-        }
+        givenData.startAddress = _startAddress;
+        givenData.stopAddress = _stopAddress;
 
     } else
         this->setRange(defaultData.startAddress, defaultData.stopAddress);
 }
-
-// -----
 
 /**
  * Resets current scanning range with default range
@@ -144,6 +135,8 @@ void Scanner::resetRange() {
 
     this->setRange(defaultData.intervalMillis, defaultData.startAddress, defaultData.stopAddress);
 }
+
+// -----
 
 /**
  * Scans connected devices with the given range
@@ -205,11 +198,8 @@ void Scanner::scanSlaves() {
             }
         }
 
-        if (currentConnectedSlavesCount != 0)
-            onTriggeredConnected(currentConnectedSlavesArray, currentConnectedSlavesCount);
-
-        if (currentDisconnectedSlavesCount != 0)
-            onTriggeredDisconnected(currentDisconnectedSlavesArray, currentDisconnectedSlavesCount);
+        onTriggeredConnected(currentConnectedSlavesArray, currentConnectedSlavesCount);
+        onTriggeredDisconnected(currentDisconnectedSlavesArray, currentDisconnectedSlavesCount);
 
         // always free at the end
         free(currentConnectedSlavesArray);
@@ -294,22 +284,20 @@ byte Scanner::getConnectedSlavesCount() {
     return currentConnectedSlavesCount;
 }
 
-// -----
-
 /**
  * Checks if specified address is online on bus
  * 
  * @param Address of specified device
  * @return Connected or not Connected
  */
-bool Scanner::isConnected(uint8_t _Address) {
+bool Scanner::isConnected(uint8_t _address) {
 
     bool isConnectedFlag = 0;
     uint8_t currentAddress;
 
     // addresses 0x00 through 0x77
     for (currentAddress = givenData.startAddress; currentAddress <= givenData.stopAddress; currentAddress++) {
-        if (givenData.connectedSlavesArray[currentAddress] == _Address) {
+        if (givenData.connectedSlavesArray[currentAddress] == _address) {
 
             isConnectedFlag = true;
             break;
@@ -318,6 +306,8 @@ bool Scanner::isConnected(uint8_t _Address) {
 
     return isConnectedFlag;
 }
+
+// -----
 
 /**
  * Preinstantiate Objects

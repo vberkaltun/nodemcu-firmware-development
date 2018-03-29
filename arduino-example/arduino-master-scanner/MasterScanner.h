@@ -2,7 +2,7 @@
  * MasterScanner.h
  * I2C SCANNER - 23.03.2018
  * 
- * ==============================================================================
+ * =============================================================================
  *
  * The MIT License (MIT)
  * 
@@ -15,8 +15,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in 
+ * all copies or substantial portions of the Software.
  * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -26,11 +26,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * ==============================================================================
+ * =============================================================================
  */
 
-#ifndef SCANNER_H
-#define SCANNER_H
+#ifndef MASTERSCANNER_H
+#define MASTERSCANNER_H
 
 #include <stdlib.h>
 
@@ -48,7 +48,7 @@
 class Scanner {
 private:
 
-    struct Data {
+    struct data {
         uint8_t startAddress = DEFALUT_START_ADDRESS;
         uint8_t stopAddress = DEFALUT_STOP_ADDRESS;
         unsigned long intervalMillis = DEFALUT_INTERVAL_MILLIS;
@@ -57,18 +57,20 @@ private:
         byte connectedSlavesCount = 0;
     };
 
-    const Data defaultData;
-    Data givenData = defaultData;
-
-    // -----
+    const data defaultData;
+    data givenData = defaultData;
 
     unsigned long previousMillis = 0;
 
-    void (*onConnected)(uint8_t[], byte);
-    void (*onDisconnected)(uint8_t[], byte);
-    
+    void (*onConnected)(uint8_t[], byte) = NULL;
+    void (*onDisconnected)(uint8_t[], byte) = NULL;
+
+    // -----
+
     void onTriggeredConnected(uint8_t _array[], byte _count);
     void onTriggeredDisconnected(uint8_t _array[], byte _count);
+
+    void cleanRange(uint8_t _startAddress, uint8_t _stopAddress, uint8_t _array[]);
 
 public:
 
@@ -77,8 +79,8 @@ public:
     void setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress);
     void setRange(unsigned long _intervalMillis);
     void setRange(uint8_t _startAddress, uint8_t _stopAddress);
-
     void resetRange();
+
     void scanSlaves();
 
     void onConnectedSlaves(void (*function)(uint8_t[], byte));
@@ -88,8 +90,7 @@ public:
     uint8_t getStopAddress();
     unsigned long getIntervalMillis();
     byte getConnectedSlavesCount();
-
-    bool isConnected(uint8_t _Address);
+    bool isConnected(uint8_t _address);
 };
 
 extern Scanner MasterScanner;
