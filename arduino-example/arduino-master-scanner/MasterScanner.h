@@ -49,11 +49,11 @@ class Scanner {
 private:
 
     struct data {
-        uint8_t startAddress = DEFALUT_START_ADDRESS;
-        uint8_t stopAddress = DEFALUT_STOP_ADDRESS;
-        unsigned long intervalMillis = DEFALUT_INTERVAL_MILLIS;
+        uint8_t startAddress = DEFAULT_START_ADDRESS;
+        uint8_t stopAddress = DEFAULT_STOP_ADDRESS;
+        unsigned long intervalMillis = DEFAULT_INTERVAL_MILLIS;
 
-        uint8_t connectedSlavesArray[DEFALUT_STOP_ADDRESS];
+        uint8_t connectedSlavesArray[DEFAULT_STOP_ADDRESS + 1];
         byte connectedSlavesCount = 0;
     };
 
