@@ -89,32 +89,6 @@ Scanner::Scanner() {
 // -----
 
 /**
- * Changes default scanning range with new range, additional changes delay
- * 
- * @param Delay, start and stop address of range
- * @return -
- */
-void Scanner::setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress) {
-
-    this->setRange(_intervalMillis);
-    this->setRange(_startAddress, _stopAddress);
-}
-
-/**
- * Changes default scanning range with new range
- * 
- * @param Delay range
- * @return -
- */
-void Scanner::setRange(unsigned long _intervalMillis) {
-
-    if (_intervalMillis < 0)
-        givenData.intervalMillis = defaultData.intervalMillis;
-    else
-        givenData.intervalMillis = _intervalMillis;
-}
-
-/**
  * Changes default scanning range with new range
  * 
  * @param Start and stop address of range
@@ -145,7 +119,7 @@ void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
  */
 void Scanner::resetRange() {
 
-    this->setRange(defaultData.intervalMillis, defaultData.startAddress, defaultData.stopAddress);
+    this->setRange(defaultData.startAddress, defaultData.stopAddress);
 }
 
 // -----
@@ -158,55 +132,45 @@ void Scanner::resetRange() {
  */
 void Scanner::scanSlaves() {
 
-    unsigned long currentMillis = millis();
+    uint8_t *currentConnectedSlavesArray = NULL;
+    uint8_t *currentDisconnectedSlavesArray = NULL;
 
-    if (currentMillis - previousMillis >= givenData.intervalMillis) {
+    byte currentConnectedSlavesCount = 0;
+    byte currentDisconnectedSlavesCount = 0;
 
-        // save the last time you blinked the LED
-        previousMillis = currentMillis;
+    // -----
 
-        // -----
+    // addresses 0x00 through 0x77
+    for (uint8_t currentAddress = givenData.startAddress; currentAddress <= givenData.stopAddress; currentAddress++) {
 
-        uint8_t *currentConnectedSlavesArray = NULL;
-        uint8_t *currentDisconnectedSlavesArray = NULL;
+        Wire.beginTransmission(currentAddress);
 
-        byte currentConnectedSlavesCount = 0;
-        byte currentDisconnectedSlavesCount = 0;
+        if (Wire.endTransmission() == 0) {
 
-        // -----
+            if (givenData.connectedSlavesArray[currentAddress] == NULL) {
+                givenData.connectedSlavesArray[currentAddress] = currentAddress;
+                givenData.connectedSlavesCount++;
 
-        // addresses 0x00 through 0x77
-        for (uint8_t currentAddress = givenData.startAddress; currentAddress <= givenData.stopAddress; currentAddress++) {
+                currentConnectedSlavesArray = this->fillArray(currentConnectedSlavesArray, currentAddress, ++currentConnectedSlavesCount);
+            }
 
-            Wire.beginTransmission(currentAddress);
+        } else {
 
-            if (Wire.endTransmission() == 0) {
+            if (givenData.connectedSlavesArray[currentAddress] != NULL) {
+                givenData.connectedSlavesArray[currentAddress] = NULL;
+                givenData.connectedSlavesCount--;
 
-                if (givenData.connectedSlavesArray[currentAddress] == NULL) {
-                    givenData.connectedSlavesArray[currentAddress] = currentAddress;
-                    givenData.connectedSlavesCount++;
-                    
-                    currentConnectedSlavesArray = this->fillArray(currentConnectedSlavesArray, currentAddress, ++currentConnectedSlavesCount);
-                }
-
-            } else {
-
-                if (givenData.connectedSlavesArray[currentAddress] != NULL) {
-                    givenData.connectedSlavesArray[currentAddress] = NULL;
-                    givenData.connectedSlavesCount--;
-                    
-                    currentDisconnectedSlavesArray = this->fillArray(currentDisconnectedSlavesArray, currentAddress, ++currentDisconnectedSlavesCount);
-                }
+                currentDisconnectedSlavesArray = this->fillArray(currentDisconnectedSlavesArray, currentAddress, ++currentDisconnectedSlavesCount);
             }
         }
-
-        onTriggeredConnected(currentConnectedSlavesArray, currentConnectedSlavesCount);
-        onTriggeredDisconnected(currentDisconnectedSlavesArray, currentDisconnectedSlavesCount);
-
-        // always free at the end
-        free(currentConnectedSlavesArray);
-        free(currentDisconnectedSlavesArray);
     }
+
+    onTriggeredConnected(currentConnectedSlavesArray, currentConnectedSlavesCount);
+    onTriggeredDisconnected(currentDisconnectedSlavesArray, currentDisconnectedSlavesCount);
+
+    // always free at the end
+    free(currentConnectedSlavesArray);
+    free(currentDisconnectedSlavesArray);
 }
 
 // -----
@@ -255,17 +219,6 @@ uint8_t Scanner::getStartAddress() {
 uint8_t Scanner::getStopAddress() {
 
     return givenData.stopAddress;
-}
-
-/**
- * Gets scanning frequency
- * 
- * @param -
- * @return Scanning frequency
- */
-unsigned long Scanner::getIntervalMillis() {
-
-    return givenData.intervalMillis;
 }
 
 /**

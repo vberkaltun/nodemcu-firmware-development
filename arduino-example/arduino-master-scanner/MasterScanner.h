@@ -43,7 +43,6 @@
 
 #define DEFAULT_START_ADDRESS 0x03
 #define DEFAULT_STOP_ADDRESS 0x77
-#define DEFAULT_INTERVAL_MILLIS 500
 
 class Scanner {
 private:
@@ -51,7 +50,6 @@ private:
     struct data {
         uint8_t startAddress = DEFAULT_START_ADDRESS;
         uint8_t stopAddress = DEFAULT_STOP_ADDRESS;
-        unsigned long intervalMillis = DEFAULT_INTERVAL_MILLIS;
 
         uint8_t connectedSlavesArray[DEFAULT_STOP_ADDRESS + 1];
         byte connectedSlavesCount = 0;
@@ -59,8 +57,6 @@ private:
 
     const data defaultData;
     data givenData = defaultData;
-
-    unsigned long previousMillis = 0;
 
     void (*onConnected)(uint8_t[], byte) = NULL;
     void (*onDisconnected)(uint8_t[], byte) = NULL;
@@ -76,9 +72,7 @@ private:
 public:
 
     Scanner();
-
-    void setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress);
-    void setRange(unsigned long _intervalMillis);
+    
     void setRange(uint8_t _startAddress, uint8_t _stopAddress);
     void resetRange();
 
@@ -89,7 +83,6 @@ public:
 
     uint8_t getStartAddress();
     uint8_t getStopAddress();
-    unsigned long getIntervalMillis();
     byte getConnectedSlavesCount();
     bool isConnected(uint8_t _address);
 };
