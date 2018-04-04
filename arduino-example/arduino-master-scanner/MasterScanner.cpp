@@ -57,6 +57,20 @@ void Scanner::onTriggeredDisconnected(uint8_t _array[], byte _count) {
     }
 }
 
+bool Scanner::checkRange(uint8_t _startAddress, uint8_t _stopAddress) {
+
+    if (_startAddress > _stopAddress)
+        return false;
+
+    if (_startAddress < defaultData.startAddress)
+        return false;
+
+    if (_stopAddress > defaultData.stopAddress)
+        return false;
+
+    return true;
+}
+
 void Scanner::cleanRange(uint8_t _array[], uint8_t _startAddress, uint8_t _stopAddress) {
 
     for (uint8_t address = _startAddress; address <= _stopAddress; address++)
@@ -96,7 +110,7 @@ Scanner::Scanner() {
  */
 void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
 
-    if (_startAddress <= _stopAddress && _startAddress >= defaultData.startAddress && _stopAddress <= defaultData.stopAddress) {
+    if (checkRange(_startAddress, _stopAddress)) {
 
         if (_startAddress > givenData.startAddress)
             this->cleanRange(givenData.connectedSlavesArray, givenData.startAddress, _startAddress - 1);
