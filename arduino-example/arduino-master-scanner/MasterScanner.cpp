@@ -163,10 +163,8 @@ void Scanner::scanSlaves() {
 
         // -----
 
-        uint8_t currentAddress;
-
         // addresses 0x00 through 0x77
-        for (currentAddress = givenData.startAddress; currentAddress <= givenData.stopAddress; currentAddress++) {
+        for (uint8_t currentAddress = givenData.startAddress; currentAddress <= givenData.stopAddress; currentAddress++) {
 
             Wire.beginTransmission(currentAddress);
 
@@ -174,6 +172,7 @@ void Scanner::scanSlaves() {
 
                 if (givenData.connectedSlavesArray[currentAddress] == NULL) {
                     givenData.connectedSlavesArray[currentAddress] = currentAddress;
+                    givenData.connectedSlavesCount++;
 
                     if (currentConnectedSlavesArray == NULL)
                         currentConnectedSlavesArray = (uint8_t*) malloc(sizeof (uint8_t)*(++currentConnectedSlavesCount));
@@ -187,6 +186,7 @@ void Scanner::scanSlaves() {
 
                 if (givenData.connectedSlavesArray[currentAddress] != NULL) {
                     givenData.connectedSlavesArray[currentAddress] = NULL;
+                    givenData.connectedSlavesCount--;
 
                     if (currentDisconnectedSlavesArray == NULL)
                         currentDisconnectedSlavesArray = (uint8_t*) malloc(sizeof (uint8_t)*(++currentDisconnectedSlavesCount));
