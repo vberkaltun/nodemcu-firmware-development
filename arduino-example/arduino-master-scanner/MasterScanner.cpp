@@ -274,14 +274,7 @@ unsigned long Scanner::getIntervalMillis() {
  */
 byte Scanner::getConnectedSlavesCount() {
 
-    byte currentConnectedSlavesCount = 0;
-    uint8_t currentAddress;
-
-    // addresses 0x00 through 0x77
-    for (currentAddress = givenData.startAddress; currentAddress <= givenData.stopAddress; currentAddress++)
-        if (givenData.connectedSlavesArray[currentAddress] != NULL) currentConnectedSlavesCount++;
-
-    return currentConnectedSlavesCount;
+    return givenData.connectedSlavesCount;
 }
 
 /**
