@@ -113,10 +113,10 @@ void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
     if (_startAddress <= _stopAddress && _startAddress >= defaultData.startAddress && _stopAddress <= defaultData.stopAddress) {
 
         if (_startAddress > givenData.startAddress)
-            this->cleanRange(givenData.startAddress, _startAddress - 1, givenData.connectedSlavesArray);
+            this->cleanRange(givenData.connectedSlavesArray, givenData.startAddress, _startAddress - 1);
 
         if (_stopAddress < givenData.stopAddress)
-            this->cleanRange(_stopAddress + 1, givenData.stopAddress, givenData.connectedSlavesArray);
+            this->cleanRange(givenData.connectedSlavesArray, _stopAddress + 1, givenData.stopAddress);
 
         givenData.startAddress = _startAddress;
         givenData.stopAddress = _stopAddress;
