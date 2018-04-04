@@ -292,11 +292,10 @@ byte Scanner::getConnectedSlavesCount() {
  */
 bool Scanner::isConnected(uint8_t _address) {
 
-    bool isConnectedFlag = 0;
-    uint8_t currentAddress;
+    bool isConnectedFlag = false;
 
     // addresses 0x00 through 0x77
-    for (currentAddress = givenData.startAddress; currentAddress <= givenData.stopAddress; currentAddress++) {
+    for (uint8_t currentAddress = givenData.startAddress; currentAddress <= givenData.stopAddress; currentAddress++) {
         if (givenData.connectedSlavesArray[currentAddress] == _address) {
 
             isConnectedFlag = true;
