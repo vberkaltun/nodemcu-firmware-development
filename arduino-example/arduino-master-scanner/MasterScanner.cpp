@@ -185,13 +185,8 @@ void Scanner::scanSlaves() {
                 if (givenData.connectedSlavesArray[currentAddress] == NULL) {
                     givenData.connectedSlavesArray[currentAddress] = currentAddress;
                     givenData.connectedSlavesCount++;
-
-                    if (currentConnectedSlavesArray == NULL)
-                        currentConnectedSlavesArray = (uint8_t*) malloc(sizeof (uint8_t)*(++currentConnectedSlavesCount));
-                    else
-                        currentConnectedSlavesArray = (uint8_t*) realloc(currentConnectedSlavesArray, sizeof (uint8_t)*(++currentConnectedSlavesCount));
-
-                    currentConnectedSlavesArray[currentConnectedSlavesCount - 1] = currentAddress;
+                    
+                    currentConnectedSlavesArray = this->fillArray(currentConnectedSlavesArray, currentAddress, ++currentConnectedSlavesCount);
                 }
 
             } else {
@@ -199,13 +194,8 @@ void Scanner::scanSlaves() {
                 if (givenData.connectedSlavesArray[currentAddress] != NULL) {
                     givenData.connectedSlavesArray[currentAddress] = NULL;
                     givenData.connectedSlavesCount--;
-
-                    if (currentDisconnectedSlavesArray == NULL)
-                        currentDisconnectedSlavesArray = (uint8_t*) malloc(sizeof (uint8_t)*(++currentDisconnectedSlavesCount));
-                    else
-                        currentDisconnectedSlavesArray = (uint8_t*) realloc(currentDisconnectedSlavesArray, sizeof (uint8_t)*(++currentDisconnectedSlavesCount));
-
-                    currentDisconnectedSlavesArray[currentDisconnectedSlavesCount - 1] = currentAddress;
+                    
+                    currentDisconnectedSlavesArray = this->fillArray(currentDisconnectedSlavesArray, currentAddress, ++currentDisconnectedSlavesCount);
                 }
             }
         }
