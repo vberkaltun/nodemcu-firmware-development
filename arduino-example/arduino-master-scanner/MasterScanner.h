@@ -41,9 +41,9 @@
 #endif
 #include "Wire.h"
 
-#define DEFALUT_START_ADDRESS 0x03
-#define DEFALUT_STOP_ADDRESS 0x77
-#define DEFALUT_INTERVAL_MILLIS 500
+#define DEFAULT_START_ADDRESS 0x03
+#define DEFAULT_STOP_ADDRESS 0x77
+#define DEFAULT_INTERVAL_MILLIS 500
 
 class Scanner {
 private:
@@ -83,8 +83,8 @@ public:
 
     void scanSlaves();
 
-    void onConnectedSlaves(void (*function)(uint8_t[], byte));
-    void onDisconnectedSlaves(void (*function)(uint8_t[], byte));
+    void onConnectedSlaves(void (*pointer)(uint8_t[], byte));
+    void onDisconnectedSlaves(void (*pointer)(uint8_t[], byte));
 
     uint8_t getStartAddress();
     uint8_t getStopAddress();

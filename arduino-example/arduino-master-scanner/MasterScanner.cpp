@@ -215,9 +215,9 @@ void Scanner::scanSlaves() {
  * @param A function that has two parameters of array and count
  * @return -
  */
-void Scanner::onConnectedSlaves(void (*function)(uint8_t[], byte)) {
+void Scanner::onConnectedSlaves(void (*pointer)(uint8_t[], byte)) {
 
-    onConnected = function;
+    onConnected = pointer;
 }
 
 /**
@@ -226,9 +226,9 @@ void Scanner::onConnectedSlaves(void (*function)(uint8_t[], byte)) {
  * @param A function that has two parameters of array and count
  * @return -
  */
-void Scanner::onDisconnectedSlaves(void (*function)(uint8_t[], byte)) {
+void Scanner::onDisconnectedSlaves(void (*pointer)(uint8_t[], byte)) {
 
-    onDisconnected = function;
+    onDisconnected = pointer;
 }
 
 // -----
