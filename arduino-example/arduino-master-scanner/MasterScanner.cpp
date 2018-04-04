@@ -57,6 +57,31 @@ void Scanner::onTriggeredDisconnected(uint8_t _array[], byte _count) {
     }
 }
 
+bool Scanner::checkRange(unsigned long _intervalMillis) {
+
+    if (_intervalMillis < DEFAULT_INTERVAL_MILLIS_MIN)
+        return false;
+
+    if (_intervalMillis > DEFAULT_INTERVAL_MILLIS_MAX)
+        return false;
+
+    return true;
+}
+
+bool Scanner::checkRange(uint8_t _startAddress, uint8_t _stopAddress) {
+
+    if (_startAddress > _stopAddress)
+        return false;
+
+    if (_startAddress < defaultData.startAddress)
+        return false;
+
+    if (_stopAddress > defaultData.stopAddress)
+        return false;
+
+    return true;
+}
+
 void Scanner::cleanRange(uint8_t _array[], uint8_t _startAddress, uint8_t _stopAddress) {
 
     for (uint8_t address = _startAddress; address <= _stopAddress; address++)
@@ -108,10 +133,10 @@ void Scanner::setRange(unsigned long _intervalMillis, uint8_t _startAddress, uin
  */
 void Scanner::setRange(unsigned long _intervalMillis) {
 
-    if (_intervalMillis < 0)
-        givenData.intervalMillis = defaultData.intervalMillis;
-    else
+    if (checkRange(_intervalMillis))
         givenData.intervalMillis = _intervalMillis;
+    else
+        givenData.intervalMillis = defaultData.intervalMillis;
 }
 
 /**
@@ -122,7 +147,7 @@ void Scanner::setRange(unsigned long _intervalMillis) {
  */
 void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
 
-    if (_startAddress <= _stopAddress && _startAddress >= defaultData.startAddress && _stopAddress <= defaultData.stopAddress) {
+    if (checkRange(_startAddress, _stopAddress)) {
 
         if (_startAddress > givenData.startAddress)
             this->cleanRange(givenData.connectedSlavesArray, givenData.startAddress, _startAddress - 1);
@@ -185,7 +210,7 @@ void Scanner::scanSlaves() {
                 if (givenData.connectedSlavesArray[currentAddress] == NULL) {
                     givenData.connectedSlavesArray[currentAddress] = currentAddress;
                     givenData.connectedSlavesCount++;
-                    
+
                     currentConnectedSlavesArray = this->fillArray(currentConnectedSlavesArray, currentAddress, ++currentConnectedSlavesCount);
                 }
 
@@ -194,7 +219,7 @@ void Scanner::scanSlaves() {
                 if (givenData.connectedSlavesArray[currentAddress] != NULL) {
                     givenData.connectedSlavesArray[currentAddress] = NULL;
                     givenData.connectedSlavesCount--;
-                    
+
                     currentDisconnectedSlavesArray = this->fillArray(currentDisconnectedSlavesArray, currentAddress, ++currentDisconnectedSlavesCount);
                 }
             }

@@ -44,6 +44,8 @@
 #define DEFAULT_START_ADDRESS 0x03
 #define DEFAULT_STOP_ADDRESS 0x77
 #define DEFAULT_INTERVAL_MILLIS 500
+#define DEFAULT_INTERVAL_MILLIS_MIN 10
+#define DEFAULT_INTERVAL_MILLIS_MAX 60000
 
 class Scanner {
 private:
@@ -70,6 +72,8 @@ private:
     void onTriggeredConnected(uint8_t _array[], byte _count);
     void onTriggeredDisconnected(uint8_t _array[], byte _count);
 
+    bool checkRange(unsigned long _intervalMillis);
+    bool checkRange(uint8_t _startAddress, uint8_t _stopAddress);
     void cleanRange(uint8_t _array[], uint8_t _startAddress, uint8_t _stopAddress);
     uint8_t *fillArray(uint8_t _array[], uint8_t _address, byte _count);
 
