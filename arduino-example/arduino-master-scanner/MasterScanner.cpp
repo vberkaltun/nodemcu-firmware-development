@@ -63,7 +63,16 @@ void Scanner::cleanRange(uint8_t _array[], uint8_t _startAddress, uint8_t _stopA
         givenData.connectedSlavesArray[address] = NULL;
 }
 
-void Scanner::fillArray(uint8_t *pointer, uint8_t _address) {
+uint8_t *Scanner::fillArray(uint8_t _array[], uint8_t _address, byte _count) {
+
+    if (_array == NULL)
+        _array = (uint8_t*) malloc(sizeof (uint8_t) * _count);
+    else
+        _array = (uint8_t*) realloc(_array, sizeof (uint8_t) * _count);
+
+    _array[_count - 1] = _address;
+
+    return _array;
 }
 
 // -----
