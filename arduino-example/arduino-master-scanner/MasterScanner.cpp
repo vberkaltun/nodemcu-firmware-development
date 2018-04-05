@@ -57,7 +57,7 @@ void Scanner::onTriggeredDisconnected(uint8_t _array[], byte _count) {
     }
 }
 
-bool Scanner::checkRange(unsigned long _intervalMillis) {
+bool Scanner::checkRange(uint16_t _intervalMillis) {
 
     if (_intervalMillis < DEFAULT_INTERVAL_MILLIS_MIN)
         return false;
@@ -121,7 +121,7 @@ Scanner::Scanner() {
  * @param Delay, start and stop address of range
  * @return -
  */
-bool Scanner::setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress) {
+bool Scanner::setRange(uint16_t _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress) {
 
     bool setRangeFlag = false;
 
@@ -140,7 +140,7 @@ bool Scanner::setRange(unsigned long _intervalMillis, uint8_t _startAddress, uin
  * @param Delay range
  * @return -
  */
-bool Scanner::setRange(unsigned long _intervalMillis) {
+bool Scanner::setRange(uint16_t _intervalMillis) {
 
     bool setRangeFlag = false;
 
@@ -199,7 +199,7 @@ void Scanner::resetRange() {
  */
 void Scanner::scanSlaves() {
 
-    unsigned long currentMillis = millis();
+    uint16_t currentMillis = millis();
 
     if (currentMillis - previousMillis >= givenData.intervalMillis) {
 
@@ -304,7 +304,7 @@ uint8_t Scanner::getStopAddress() {
  * @param -
  * @return Scanning frequency
  */
-unsigned long Scanner::getIntervalMillis() {
+uint16_t Scanner::getIntervalMillis() {
 
     return givenData.intervalMillis;
 }

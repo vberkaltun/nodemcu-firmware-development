@@ -53,7 +53,7 @@ private:
     struct data {
         uint8_t startAddress = DEFAULT_START_ADDRESS;
         uint8_t stopAddress = DEFAULT_STOP_ADDRESS;
-        unsigned long intervalMillis = DEFAULT_INTERVAL_MILLIS;
+        uint16_t intervalMillis = DEFAULT_INTERVAL_MILLIS;
 
         uint8_t connectedSlavesArray[DEFAULT_STOP_ADDRESS + 1];
         byte connectedSlavesCount = 0;
@@ -62,7 +62,7 @@ private:
     const data defaultData;
     data givenData = defaultData;
 
-    unsigned long previousMillis = 0;
+    uint16_t previousMillis = 0;
 
     void (*onConnected)(uint8_t[], byte) = NULL;
     void (*onDisconnected)(uint8_t[], byte) = NULL;
@@ -72,7 +72,7 @@ private:
     void onTriggeredConnected(uint8_t _array[], byte _count);
     void onTriggeredDisconnected(uint8_t _array[], byte _count);
 
-    bool checkRange(unsigned long _intervalMillis);
+    bool checkRange(uint16_t _intervalMillis);
     bool checkRange(uint8_t _startAddress, uint8_t _stopAddress);
     uint8_t *cleanRange(uint8_t _array[], uint8_t _startAddress, uint8_t _stopAddress);
     uint8_t *fillArray(uint8_t _array[], uint8_t _address, byte _count);
@@ -81,8 +81,8 @@ public:
 
     Scanner();
 
-    bool setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress);
-    bool setRange(unsigned long _intervalMillis);
+    bool setRange(uint16_t _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress);
+    bool setRange(uint16_t _intervalMillis);
     bool setRange(uint8_t _startAddress, uint8_t _stopAddress);
     void resetRange();
     
@@ -93,7 +93,7 @@ public:
 
     uint8_t getStartAddress();
     uint8_t getStopAddress();
-    unsigned long getIntervalMillis();
+    uint16_t getIntervalMillis();
     byte getConnectedSlavesCount();
     bool isConnected(uint8_t _address);
 };
