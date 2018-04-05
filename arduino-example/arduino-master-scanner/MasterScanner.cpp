@@ -119,10 +119,17 @@ Scanner::Scanner() {
  * @param Delay, start and stop address of range
  * @return -
  */
-void Scanner::setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress) {
+bool Scanner::setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress) {
 
-    this->setRange(_intervalMillis);
-    this->setRange(_startAddress, _stopAddress);
+    bool setRangeFlag = false;
+
+    if (checkRange(_intervalMillis) && checkRange(_startAddress, _stopAddress)) {
+        this->setRange(_intervalMillis);
+        this->setRange(_startAddress, _stopAddress);
+        setRangeFlag = true;
+    }
+
+    return setRangeFlag;
 }
 
 /**
@@ -131,12 +138,16 @@ void Scanner::setRange(unsigned long _intervalMillis, uint8_t _startAddress, uin
  * @param Delay range
  * @return -
  */
-void Scanner::setRange(unsigned long _intervalMillis) {
+bool Scanner::setRange(unsigned long _intervalMillis) {
 
-    if (checkRange(_intervalMillis))
+    bool setRangeFlag = false;
+
+    if (checkRange(_intervalMillis)) {
         givenData.intervalMillis = _intervalMillis;
-    else
-        givenData.intervalMillis = defaultData.intervalMillis;
+        setRangeFlag = true;
+    }
+
+    return setRangeFlag;
 }
 
 /**
@@ -145,7 +156,9 @@ void Scanner::setRange(unsigned long _intervalMillis) {
  * @param Start and stop address of range
  * @return -
  */
-void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
+bool Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
+
+    bool setRangeFlag = false;
 
     if (checkRange(_startAddress, _stopAddress)) {
 
@@ -157,9 +170,10 @@ void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
 
         givenData.startAddress = _startAddress;
         givenData.stopAddress = _stopAddress;
+        setRangeFlag = true;
+    }
 
-    } else
-        this->setRange(defaultData.startAddress, defaultData.stopAddress);
+    return setRangeFlag;
 }
 
 /**

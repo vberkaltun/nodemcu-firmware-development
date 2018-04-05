@@ -81,11 +81,11 @@ public:
 
     Scanner();
 
-    void setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress);
-    void setRange(unsigned long _intervalMillis);
-    void setRange(uint8_t _startAddress, uint8_t _stopAddress);
+    bool setRange(unsigned long _intervalMillis, uint8_t _startAddress, uint8_t _stopAddress);
+    bool setRange(unsigned long _intervalMillis);
+    bool setRange(uint8_t _startAddress, uint8_t _stopAddress);
     void resetRange();
-
+    
     void scanSlaves();
 
     void onConnectedSlaves(void (*pointer)(uint8_t[], byte));
