@@ -74,7 +74,7 @@ public:
 
     Scanner();
 
-    void setRange(uint8_t _startAddress, uint8_t _stopAddress);
+    bool setRange(uint8_t _startAddress, uint8_t _stopAddress);
     void resetRange();
 
     void scanSlaves();

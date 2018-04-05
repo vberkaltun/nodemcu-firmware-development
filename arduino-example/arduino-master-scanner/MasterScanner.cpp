@@ -108,7 +108,9 @@ Scanner::Scanner() {
  * @param Start and stop address of range
  * @return -
  */
-void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
+bool Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
+
+    bool setRangeFlag = false;
 
     if (checkRange(_startAddress, _stopAddress)) {
 
@@ -120,9 +122,10 @@ void Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
 
         givenData.startAddress = _startAddress;
         givenData.stopAddress = _stopAddress;
+        setRangeFlag = true;
+    }
 
-    } else
-        this->setRange(defaultData.startAddress, defaultData.stopAddress);
+    return setRangeFlag;
 }
 
 /**
