@@ -178,18 +178,20 @@ bool Timer::startProcess(void (*pointer)(void)) {
 
     bool startProcessFlag = false;
 
-    for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+    if (isRegistered(pointer)) {
 
-        // save the last time you blinked the LED
-        if (timerQueueArray[currentQueueCount].pointer == pointer) {
-            timerQueueArray[currentQueueCount].previousMillis = millis();
-            timerQueueArray[currentQueueCount].enabledStatus = true;
+        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
-            startProcessFlag = true;
-            break;
+            // save the last time you blinked the LED
+            if (timerQueueArray[currentQueueCount].pointer == pointer) {
+                timerQueueArray[currentQueueCount].previousMillis = millis();
+                timerQueueArray[currentQueueCount].enabledStatus = true;
+
+                startProcessFlag = true;
+                break;
+            }
         }
     }
-
     return startProcessFlag;
 }
 
@@ -197,14 +199,17 @@ bool Timer::stopProcess(void (*pointer)(void)) {
 
     bool stopProcessFlag = false;
 
-    for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+    if (isRegistered(pointer)) {
 
-        // save the last time you blinked the LED
-        if (timerQueueArray[currentQueueCount].pointer == pointer) {
-            timerQueueArray[currentQueueCount].enabledStatus = false;
+        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
-            stopProcessFlag = true;
-            break;
+            // save the last time you blinked the LED
+            if (timerQueueArray[currentQueueCount].pointer == pointer) {
+                timerQueueArray[currentQueueCount].enabledStatus = false;
+
+                stopProcessFlag = true;
+                break;
+            }
         }
     }
 
