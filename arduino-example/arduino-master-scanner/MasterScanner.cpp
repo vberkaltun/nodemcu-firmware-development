@@ -71,10 +71,12 @@ bool Scanner::checkRange(uint8_t _startAddress, uint8_t _stopAddress) {
     return true;
 }
 
-void Scanner::cleanRange(uint8_t _array[], uint8_t _startAddress, uint8_t _stopAddress) {
+uint8_t *Scanner::cleanRange(uint8_t _array[], uint8_t _startAddress, uint8_t _stopAddress) {
 
     for (uint8_t address = _startAddress; address <= _stopAddress; address++)
         givenData.connectedSlavesArray[address] = NULL;
+
+    return _array;
 }
 
 uint8_t *Scanner::fillArray(uint8_t _array[], uint8_t _address, byte _count) {
@@ -115,10 +117,10 @@ bool Scanner::setRange(uint8_t _startAddress, uint8_t _stopAddress) {
     if (checkRange(_startAddress, _stopAddress)) {
 
         if (_startAddress > givenData.startAddress)
-            this->cleanRange(givenData.connectedSlavesArray, givenData.startAddress, _startAddress - 1);
+            givenData.connectedSlavesArray = this->cleanRange(givenData.connectedSlavesArray, givenData.startAddress, _startAddress - 1);
 
         if (_stopAddress < givenData.stopAddress)
-            this->cleanRange(givenData.connectedSlavesArray, _stopAddress + 1, givenData.stopAddress);
+            givenData.connectedSlavesArray = this->cleanRange(givenData.connectedSlavesArray, _stopAddress + 1, givenData.stopAddress);
 
         givenData.startAddress = _startAddress;
         givenData.stopAddress = _stopAddress;
