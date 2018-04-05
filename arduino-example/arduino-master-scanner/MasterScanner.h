@@ -67,7 +67,7 @@ private:
     void onTriggeredDisconnected(uint8_t _array[], byte _count);
 
     bool checkRange(uint8_t _startAddress, uint8_t _stopAddress);
-    uint8_t *cleanRange(uint8_t _array[], uint8_t _startAddress, uint8_t _stopAddress);
+    void cleanRange(uint8_t _startAddress, uint8_t _stopAddress);
     uint8_t *fillArray(uint8_t _array[], uint8_t _address, byte _count);
 
 public:
