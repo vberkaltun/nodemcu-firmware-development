@@ -463,6 +463,9 @@ bool Slave::setConfig(uint8_t _deviceAddress, char _deviceBrand[], char _deviceI
 
 void Slave::pullData(char _data[]) {
 
+    // First, clear recent given data
+    clearGivenList();
+
     if (!decodeData(_data) && onUnknown != NULL)
         onUnknown(_data);
 }
