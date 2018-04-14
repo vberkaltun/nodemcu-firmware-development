@@ -59,11 +59,12 @@ class Slave {
 private:
 
     struct givenData {
-        uint8_t queueID;
-        uint16_t crcChecksum;
-        bool returnRequest;
-        char* functionID;
-        char* paramList = NULL;
+        uint8_t queue = 0;
+        uint16_t crc;
+        bool request = false;
+        char *function = NULL;
+        uint8_t paramSize = 0;
+        char **paramList = NULL;
     } givenList;
 
     enum separatorData {
