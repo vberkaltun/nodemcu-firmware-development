@@ -60,6 +60,11 @@ bool Slave::checkSeparator(char _map) {
 
 bool Slave::checkMap(mapData _selector, char _data[]) {
 
+    // IMPORTANT NOTICE: This function is based on your data
+    // You can change and develop all of this func depending on your purpose
+    // For some step, I did not declare a new DEFINE on the top of "Header"
+    // I made it all declaring at the here for to avoid confusion
+
     // Store the size of map data at the here
     uint16_t sizeofSeparator = strlen(_data);
 
@@ -67,29 +72,89 @@ bool Slave::checkMap(mapData _selector, char _data[]) {
 
     switch (_selector) {
 
-        case Slave::mapData::queue:
+        case mapData::queue:
 
-            return true;
+            if (sizeofSeparator > 3)
+                return false;
+
+            for (uint16_t index = 0; index < sizeofSeparator; index++)
+                if (isdigit(_data[0]) == 0)
+                    return false;
+
+            uint16_t result;
+            sscanf(_data, "%d", &result);
+
+            // ----
+
+            if (result > 255)
+                return false;
+
+            // Finally, store it. not need compare
+            givenList.queueID = result;
+
             break;
 
-        case Slave::mapData::crc:
+        case mapData::crc:
 
-            return true;
+            if (sizeofSeparator > 5)
+                return false;
+
+            for (uint16_t index = 0; index < sizeofSeparator; index++)
+                if (isdigit(_data[0]) == 0)
+                    return false;
+
+            // Finally, store it. not need compare
+            sscanf(_data, "%d", &givenList.crcChecksum);
+
             break;
 
-        case Slave::mapData::request:
+        case mapData::request:
 
-            return true;
+            if (sizeofSeparator > 1)
+                return false;
+
+            if (isdigit(_data[0]) == 0)
+                return false;
+
+            // Finally, store it. not need compare
+            sscanf(_data, "%d", &givenList.returnRequest);
+
             break;
 
-        case Slave::mapData::function:
+        case mapData::function:
 
-            return true;
+            if (sizeofSeparator > DEFAULT_FUNCTIONID_SIZE_MAX)
+                return false;
+
+            for (uint16_t index = 0; index < sizeofSeparator; index++)
+                if (isalnum(_data[index]) == 0)
+                    return false;
+
+            // Malloc and realloc a word, a list of characters, after carry it
+            givenList.functionID = (char *) malloc(sizeof (char) * (sizeofSeparator + 1));
+            strcpy(givenList.functionID, _data);
+
             break;
 
-        case Slave::mapData::param:
+        case mapData::param:
 
-            return true;
+            if (sizeofSeparator > 32)
+                return false;
+
+            for (uint16_t index = 0; index < sizeofSeparator; index++)
+                if (isalnum(_data[index]) == 0)
+                    return false;
+
+            // Malloc and realloc a sentence,  a list of words
+            if (givenList.paramList == NULL)
+                givenList.paramList = (char **) malloc(sizeof (char *) * (++givenList.paramSize));
+            else
+                givenList.paramList = (char **) realloc(givenList.paramList, sizeof (char *) * (++givenList.paramSize));
+
+            // Malloc and realloc a word, a list of characters, after carry it
+            givenList.paramList[givenList.paramSize - 1] = (char *) malloc(sizeof (char) * 32);
+            strcpy(givenList.paramList[givenList.paramSize - 1], _data);
+
             break;
 
         default:
