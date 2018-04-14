@@ -45,10 +45,10 @@ void Slave::clearGivenList() {
 bool Slave::checkSeparator(char _map) {
     switch (_map) {
 
-        case Slave::separatorData::file:
-        case Slave::separatorData::group:
-        case Slave::separatorData::record:
-        case Slave::separatorData::unit:
+        case separatorData::file:
+        case separatorData::group:
+        case separatorData::record:
+        case separatorData::unit:
             break;
 
         default:
