@@ -34,10 +34,10 @@
 void Slave::clearGivenList() {
 
     // Clear recent stored data, We will fill again
-    givenList.queueID = 0;
-    givenList.crcChecksum = 0;
-    givenList.returnRequest = false;
-    givenList.functionID = NULL;
+    givenList.queue = 0;
+    givenList.crc = 0;
+    givenList.request = false;
+    givenList.function = NULL;
     givenList.paramSize = 0;
     givenList.paramList = NULL;
 }
