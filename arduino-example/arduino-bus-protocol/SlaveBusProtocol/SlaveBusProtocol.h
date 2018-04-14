@@ -145,10 +145,10 @@ private:
 
     // -----
 
-    void (*onUnknown)(uint16_t, char[]) = NULL;
+    void (*onUnknown)(char[]) = NULL;
 
     bool checkSeparator(char _map);
-    bool checkMap(Slave::mapData _selector, uint16_t _length, char _data[]);
+    bool checkMap(Slave::mapData _selector, char _data[]);
 
     bool checkSeparatorList(char _data[]);
     bool checkMapList(char _data[]);
@@ -177,7 +177,7 @@ public:
     void pullData(char _data[]);
     void pushData(); // todo
 
-    void onUnknownData(void (*pointer)(uint16_t, char[]));
+    void onUnknownData(void (*pointer)(char[]));
 };
 
 extern Slave BusProtocol;

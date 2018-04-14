@@ -48,7 +48,12 @@ bool Slave::checkSeparator(char _map) {
     return true;
 }
 
-bool Slave::checkMap(Slave::mapData _selector, uint16_t _length, char _data[]) {
+bool Slave::checkMap(Slave::mapData _selector, char _data[]) {
+
+    // Store the size of map data at the here
+    uint16_t sizeofSeparator = strlen(_data);
+
+    // -----
 
     switch (_selector) {
 
@@ -86,8 +91,8 @@ bool Slave::checkMap(Slave::mapData _selector, uint16_t _length, char _data[]) {
 
 bool Slave::checkSeparatorList(char _data[]) {
 
-    // Store the size of map data at the here
-    uint16_t sizeofSeparator = sizeof (_data) / sizeof (char);
+    // Store the size of separator data at the here
+    uint16_t sizeofSeparator = strlen(_data);
 
     // -----
 
@@ -126,7 +131,7 @@ bool Slave::checkSeparatorList(char _data[]) {
 bool Slave::checkMapList(char _data[]) {
 
     // Store the size of map data at the here
-    uint16_t sizeofMap = sizeof (_data) / sizeof (char);
+    uint16_t sizeofMap = strlen(_data);
 
     // -----
 
@@ -157,7 +162,7 @@ bool Slave::checkMapList(char _data[]) {
             return false;
 
         // Only this check is enough, there is no need for further check
-        if (!checkMap(Slave::mapList[checkedMap++], strlen(mapListPointer), mapListPointer))
+        if (!checkMap(Slave::mapList[checkedMap++], mapListPointer))
             return false;
 
         mapListPointer = strtok(NULL, splitCharacter);
@@ -169,7 +174,9 @@ bool Slave::checkMapList(char _data[]) {
 bool Slave::checkConfigList(char _data[]) {
 
     // Store the size of config data at the here
-    uint16_t sizeofConfig = sizeof (_data) / sizeof (char);
+    uint16_t sizeofConfig = strlen(_data);
+
+    // -----
 
     // Check function ID, type is alphanumeric
     for (uint16_t index = 0; index < sizeofConfig; index++)
@@ -182,15 +189,17 @@ bool Slave::checkConfigList(char _data[]) {
 bool Slave::checkFunctionList(char _data[]) {
 
     // Store the size of function data at the here
-    uint16_t sizeofFunction = sizeof (_data) / sizeof (char);
+    uint16_t sizeofFunction = strlen(_data);
+
+    // -----
 
     if (_data == NULL)
         return false;
 
-    if ((sizeofFunction) < DEFAULT_FUNCTIONID_SIZE_MIN)
+    if (sizeofFunction < DEFAULT_FUNCTIONID_SIZE_MIN)
         return false;
 
-    if (sizeofFunction) > DEFAULT_FUNCTIONID_SIZE_MAX)
+    if (sizeofFunction > DEFAULT_FUNCTIONID_SIZE_MAX)
         return false;
 
     // Check function ID, type is alphanumeric
@@ -453,7 +462,7 @@ void Slave::pushData() {
 
 // -----
 
-void Slave::onUnknownData(void (*pointer)(uint16_t, char[])) {
+void Slave::onUnknownData(void (*pointer)(char[])) {
 
     onUnknown = pointer;
 }
