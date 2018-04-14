@@ -122,7 +122,7 @@ bool Slave::checkSeparatorList(char _data[]) {
                 return false;
 
             // Check value on given index in separator list
-            if (Slave::separatorList[checkedSeparator++] != _data[index])
+            if (separatorList[checkedSeparator++] != _data[index])
                 return false;
 
             // Update index
@@ -172,7 +172,7 @@ bool Slave::checkMapList(char _data[]) {
             return false;
 
         // Only this check is enough, there is no need for further check
-        if (!checkMap(Slave::mapList[checkedMap++], mapListPointer))
+        if (!checkMap(mapList[checkedMap++], mapListPointer))
             return false;
 
         mapListPointer = strtok(NULL, splitCharacter);
@@ -284,7 +284,7 @@ bool Slave::setFunction(int8_t(*pointer)(uint16_t, char[]), char _functionID[]) 
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_int8_t;
+        functionList[configList.functionListCount - 1].type = functionData::is_int8_t;
         functionList[configList.functionListCount - 1].pointer.int8_tValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -300,7 +300,7 @@ bool Slave::setFunction(int16_t(*pointer)(uint16_t, char[]), char _functionID[])
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_int16_t;
+        functionList[configList.functionListCount - 1].type = functionData::is_int16_t;
         functionList[configList.functionListCount - 1].pointer.int16_tValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -316,7 +316,7 @@ bool Slave::setFunction(int32_t(*pointer)(uint16_t, char[]), char _functionID[])
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_int32_t;
+        functionList[configList.functionListCount - 1].type = functionData::is_int32_t;
         functionList[configList.functionListCount - 1].pointer.int32_tValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -332,7 +332,7 @@ bool Slave::setFunction(uint8_t(*pointer)(uint16_t, char[]), char _functionID[])
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_uint8_t;
+        functionList[configList.functionListCount - 1].type = functionData::is_uint8_t;
         functionList[configList.functionListCount - 1].pointer.uint8_tValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -348,7 +348,7 @@ bool Slave::setFunction(uint16_t(*pointer)(uint16_t, char[]), char _functionID[]
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_uint16_t;
+        functionList[configList.functionListCount - 1].type = functionData::is_uint16_t;
         functionList[configList.functionListCount - 1].pointer.uint16_tValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -364,7 +364,7 @@ bool Slave::setFunction(uint32_t(*pointer)(uint16_t, char[]), char _functionID[]
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_uint32_t;
+        functionList[configList.functionListCount - 1].type = functionData::is_uint32_t;
         functionList[configList.functionListCount - 1].pointer.uint32_tValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -380,7 +380,7 @@ bool Slave::setFunction(char* (*pointer)(uint16_t, char[]), char _functionID[]) 
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_char;
+        functionList[configList.functionListCount - 1].type = functionData::is_char;
         functionList[configList.functionListCount - 1].pointer.charValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -396,7 +396,7 @@ bool Slave::setFunction(bool (*pointer)(uint16_t, char[]), char _functionID[]) {
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_bool;
+        functionList[configList.functionListCount - 1].type = functionData::is_bool;
         functionList[configList.functionListCount - 1].pointer.boolValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -412,7 +412,7 @@ bool Slave::setFunction(float (*pointer)(uint16_t, char[]), char _functionID[]) 
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_float;
+        functionList[configList.functionListCount - 1].type = functionData::is_float;
         functionList[configList.functionListCount - 1].pointer.floatValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
@@ -428,7 +428,7 @@ bool Slave::setFunction(void (*pointer)(uint16_t, char[]), char _functionID[]) {
 
     if (!configList.setFlag && checkFunctionList(_functionID)) {
 
-        functionList[configList.functionListCount - 1].type = Slave::functionData::is_void;
+        functionList[configList.functionListCount - 1].type = functionData::is_void;
         functionList[configList.functionListCount - 1].pointer.voidValue = pointer;
         functionList[configList.functionListCount - 1].functionID = _functionID;
 
