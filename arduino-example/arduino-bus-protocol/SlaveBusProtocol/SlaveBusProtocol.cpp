@@ -31,8 +31,18 @@
 
 #include "SlaveBusProtocol.h"
 
-bool Slave::checkSeparator(char _map) {
+void Slave::clearGivenList() {
 
+    // Clear recent stored data, We will fill again
+    givenList.queueID = 0;
+    givenList.crcChecksum = 0;
+    givenList.returnRequest = false;
+    givenList.functionID = NULL;
+    givenList.paramSize = 0;
+    givenList.paramList = NULL;
+}
+
+bool Slave::checkSeparator(char _map) {
     switch (_map) {
 
         case Slave::separatorData::file:

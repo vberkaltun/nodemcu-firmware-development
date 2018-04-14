@@ -147,6 +147,8 @@ private:
 
     void (*onUnknown)(char[]) = NULL;
 
+    void clearGivenList();
+
     bool checkSeparator(char _map);
     bool checkMap(Slave::mapData _selector, char _data[]);
 
