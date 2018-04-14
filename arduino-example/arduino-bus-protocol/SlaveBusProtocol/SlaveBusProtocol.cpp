@@ -446,6 +446,10 @@ bool Slave::setConfig(uint8_t _deviceAddress, char _deviceBrand[], char _deviceI
 
     if (!configList.setFlag) {
 
+        // Check all of them of alphanumeric
+        if (!checkConfigList(_deviceBrand) && !checkConfigList(_deviceID) && !checkConfigList(_deviceVersion))
+            return false;
+
         configList.deviceAddress = _deviceAddress;
         configList.deviceBrand = _deviceBrand;
         configList.deviceID = _deviceID;
