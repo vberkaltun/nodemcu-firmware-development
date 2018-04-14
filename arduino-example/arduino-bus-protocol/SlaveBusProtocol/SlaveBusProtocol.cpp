@@ -58,7 +58,7 @@ bool Slave::checkSeparator(char _map) {
     return true;
 }
 
-bool Slave::checkMap(Slave::mapData _selector, char _data[]) {
+bool Slave::checkMap(mapData _selector, char _data[]) {
 
     // Store the size of map data at the here
     uint16_t sizeofSeparator = strlen(_data);
