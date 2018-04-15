@@ -281,6 +281,11 @@ bool Slave::setFunction(void (*pointer)(uint16_t, char**), char _function[]) {
     return true;
 }
 
+void Slave::onUnknownData(void (*pointer)(char[])) {
+
+    configList.onUnknownPointer = pointer;
+}
+
 // -----
 
 void Slave::pullData(char _data[]) {
@@ -296,13 +301,6 @@ void Slave::pullData(char _data[]) {
 }
 
 void Slave::pushData() {
-}
-
-// -----
-
-void Slave::onUnknownData(void (*pointer)(char[])) {
-
-    configList.onUnknownPointer = pointer;
 }
 
 // -----

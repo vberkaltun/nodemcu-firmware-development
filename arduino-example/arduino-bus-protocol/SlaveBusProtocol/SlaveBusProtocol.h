@@ -127,11 +127,11 @@ public:
     Slave();
 
     bool setFunction(void (*pointer)(uint16_t, char**), char _function[]);
+    void onUnknownData(void (*pointer)(char[]));
 
     void pullData(char _data[]);
     void pushData(); // todo
 
-    void onUnknownData(void (*pointer)(char[]));
 };
 
 extern Slave BusProtocol;
