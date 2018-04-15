@@ -51,6 +51,9 @@
 #define DEFAULT_PATTERN_SIZE_MIN 4
 #define DEFAULT_PATTERN_SIZE_MAX 32
 
+// IMPORTANT NOTICE: You can change the following variables depending on your objectives
+// Depending on the changes you made, you should also update the variables
+// Otherwise, you can get ordinary compilation or memory failure
 #define DEFAULT_SEPARATORLIST_SIZE 9
 #define DEFAULT_MAPLIST_SIZE 8
 #define DEFAULT_FUNCTIONLIST_SIZE 32
@@ -62,10 +65,20 @@ private:
         uint8_t queue = 0;
         uint16_t crc;
         bool request = false;
-        char *function = NULL;
+
         uint8_t paramSize = 0;
         char **paramList = NULL;
+
+        char *function = NULL;
     } givenList;
+
+    struct configData {
+        void (*onUnknownPointer)(char[]) = NULL;
+        uint8_t functionListSize;
+        char functionDelimiter = '\n';
+    } configList;
+
+    // -----
 
     enum separatorData {
         file = 0x1C,
@@ -73,15 +86,15 @@ private:
         record = 0x1E,
         unit = 0x1F
     } separatorList[DEFAULT_SEPARATORLIST_SIZE] = {
-        Slave::separatorData::file,
-        Slave::separatorData::record,
-        Slave::separatorData::record,
-        Slave::separatorData::group,
-        Slave::separatorData::record,
-        Slave::separatorData::unit,
-        Slave::separatorData::unit,
-        Slave::separatorData::unit,
-        Slave::separatorData::file
+        separatorData::file,
+        separatorData::record,
+        separatorData::record,
+        separatorData::group,
+        separatorData::record,
+        separatorData::unit,
+        separatorData::unit,
+        separatorData::unit,
+        separatorData::file
     };
 
     enum mapData {
@@ -91,72 +104,64 @@ private:
         function,
         param
     } mapList[DEFAULT_SEPARATORLIST_SIZE] = {
-        Slave::mapData::queue,
-        Slave::mapData::crc,
-        Slave::mapData::request,
-        Slave::mapData::function,
-        Slave::mapData::param,
-        Slave::mapData::param,
-        Slave::mapData::param,
-        Slave::mapData::param
+        mapData::queue,
+        mapData::crc,
+        mapData::request,
+        mapData::function,
+        mapData::param,
+        mapData::param,
+        mapData::param,
+        mapData::param
     };
-
-    // -----
-
-    struct configData {
-        uint8_t deviceAddress;
-        char* deviceBrand;
-        char* deviceID;
-        char* deviceVersion;
-        bool setFlag = false;
-        uint8_t functionListCount = 0;
-    } configList;
 
     struct functionData {
 
         enum typeData {
-            is_int8_t,
-            is_int16_t,
-            is_int32_t,
-            is_uint8_t,
-            is_uint16_t,
-            is_uint32_t,
-            is_char,
-            is_bool,
-            is_float,
-            is_void,
+            is_UNKNOWN,
+            is_INT8_T,
+            is_INT16_T,
+            is_INT32_T,
+            is_UINT8_T,
+            is_UINT16_T,
+            is_UINT32_T,
+            is_CHAR,
+            is_BOOL,
+            is_FLOAT,
+            is_VOID,
         } type;
 
         union pointerData {
-            int8_t(*int8_tValue)(uint16_t, char[]);
-            int16_t(*int16_tValue)(uint16_t, char[]);
-            int32_t(*int32_tValue)(uint16_t, char[]);
-            uint8_t(*uint8_tValue)(uint16_t, char[]);
-            uint16_t(*uint16_tValue)(uint16_t, char[]);
-            uint32_t(*uint32_tValue)(uint16_t, char[]);
-            char* (*charValue)(uint16_t, char[]);
-            bool (*boolValue)(uint16_t, char[]);
-            float (*floatValue)(uint16_t, char[]);
-            void (*voidValue)(uint16_t, char[]);
+            int8_t(*INT8_T)(uint16_t, char**);
+            int16_t(*INT16_T)(uint16_t, char**);
+            int32_t(*INT32_T)(uint16_t, char**);
+            uint8_t(*UINT8_T)(uint16_t, char**);
+            uint16_t(*UINT16_T)(uint16_t, char**);
+            uint32_t(*UINT32_T)(uint16_t, char**);
+            char* (*CHAR)(uint16_t, char**);
+            bool (*BOOL)(uint16_t, char**);
+            float (*FLOAT)(uint16_t, char**);
+            void (*VOID)(uint16_t, char**);
         } pointer;
 
-        char* functionID;
+        char* function;
 
-    } *functionList;
+    } functionList[DEFAULT_FUNCTIONLIST_SIZE];
 
     // -----
 
-    void (*onUnknown)(char[]) = NULL;
-
     void clearGivenList();
+    bool setFunction(char _data[]);
 
-    bool checkSeparator(char _map);
-    bool checkMap(Slave::mapData _selector, char _data[]);
+    bool isNumeric(uint8_t _lowerBound, uint8_t _upperBound, char _data[]);
+    bool isAlphanumeric(uint8_t _lowerBound, uint8_t _upperBound, char _data[]);
 
-    bool checkSeparatorList(char _data[]);
-    bool checkMapList(char _data[]);
-    bool checkConfigList(char _data[]);
-    bool checkFunctionList(char _data[]);
+    bool isSeparator(char _selector);
+    bool isMap(mapData _selector, char _data[]);
+    bool isFunction(functionData::typeData _selector, uint8_t _index);
+
+    bool checkSeparatorList(char *_data);
+    bool checkMapList(char *_data);
+    bool checkFunctionList(char *_data);
 
     bool decodeData(char _data[]);
     bool encodeData(); // todo
@@ -165,17 +170,16 @@ public:
 
     Slave();
 
-    bool setFunction(int8_t(*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(int16_t(*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(int32_t(*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(uint8_t(*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(uint16_t(*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(uint32_t(*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(char*(*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(bool (*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(float (*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setFunction(void (*pointer)(uint16_t, char[]), char _functionID[]);
-    bool setConfig(uint8_t _deviceAddress, char _deviceBrand[], char _deviceID[], char _deviceVersion[]);
+    bool setFunction(int8_t(*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(int16_t(*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(int32_t(*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(uint8_t(*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(uint16_t(*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(uint32_t(*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(char*(*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(bool (*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(float (*pointer)(uint16_t, char**), char _function[]);
+    bool setFunction(void (*pointer)(uint16_t, char**), char _function[]);
 
     void pullData(char _data[]);
     void pushData(); // todo
