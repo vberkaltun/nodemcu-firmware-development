@@ -74,8 +74,6 @@ int32_t Serializer::calculateMaximumLineWidth() {
 
 void Serializer::clearDecodedList() {
 
-    decodedList.sizeofResultData = 0;
-
     // IMPORTANT NOTICE: seems so confused, right? 
     // When you free up a pointer, you can not use it again anymore 
     // But when you make reassigning NULL to a pointer after the freeing up, 
@@ -87,14 +85,18 @@ void Serializer::clearDecodedList() {
     free(decodedList.givenData);
     decodedList.givenData = NULL;
 
+    for (int index = 0; index < decodedList.sizeofResultData + 1; index++)
+        free(decodedList.resultData[index]);
+
     free(decodedList.resultData);
     decodedList.resultData = NULL;
+
+    // -----
+
+    decodedList.sizeofResultData = 0;
 }
 
 void Serializer::clearEncodedList() {
-
-    encodedList.sizeofResultData = 0;
-    encodedList.sizeofGivenData = 0;
 
     // IMPORTANT NOTICE: seems so confused, right? 
     // When you free up a pointer, you can not use it again anymore 
@@ -107,8 +109,16 @@ void Serializer::clearEncodedList() {
     free(encodedList.resultData);
     encodedList.resultData = NULL;
 
+    for (int index = 0; index < encodedList.sizeofGivenData; index++)
+        free(encodedList.givenData[index]);
+
     free(encodedList.givenData);
     encodedList.givenData = NULL;
+
+    // -----
+
+    encodedList.sizeofResultData = 0;
+    encodedList.sizeofGivenData = 0;
 }
 
 void Serializer::fillDecodedList() {
@@ -138,6 +148,9 @@ void Serializer::fillDecodedList() {
 
         tokenizer = strtok(NULL, decodedList.delimiter);
     }
+
+    // Do not forget, strictly free up memory
+    free(tokenizer);
 
     // IMPORTANT NOTICE: Probably it is looking unnecessary ...
     // But it has a very important role on memory. With this code,
