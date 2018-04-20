@@ -324,3 +324,32 @@ bool encodeData(char data[]) {
   return true;
 }
 
+bool isNumeric(int sizeofData, char data[]) {
+
+  if (data == NULL)
+    return false;
+
+  for (uint16_t index = 0; index < sizeofData; index++)
+    if (isdigit(data[index]) == 0)
+      return false;
+
+  return true;
+}
+
+bool isAlphanumeric(int sizeofData, char data[]) {
+
+  if (data == NULL)
+    return false;
+
+  // Check function ID, type is alphanumeric
+  for (uint16_t index = 0; index < sizeofData; index++)
+    if (isalnum(data[index]) == 0)
+      return false;
+
+  return true;
+}
+
+// ------------------------------------------------------------
+// ----- INTERNAL FUNC(S) -------------------------------------
+// ------------------------------------------------------------
+
