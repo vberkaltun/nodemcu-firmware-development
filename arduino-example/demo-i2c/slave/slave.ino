@@ -98,3 +98,20 @@ void receiveEvent(int sizeofData) {
   free(newReceivedBuffer);
 }
 
+void requestEvent() {
+
+  // Fetch first stored data on givenList
+  char *subGivenData = popGivenBuffer();
+
+  if (subGivenData != NULL)
+    Wire.write(subGivenData);
+  else {
+
+    // When given data is NULL, add an value as NULL
+    encodeData("NULL");
+
+    // ... And pop that to I2C bus
+    Wire.write(popGivenBuffer());
+  }
+}
+
