@@ -59,3 +59,42 @@ void setup() {
 void loop() {
 }
 
+void receiveEvent(int sizeofData) {
+
+  // Declare a new variable about given size
+  char *newReceivedBuffer;
+  int newReceivedIndex = 0;
+
+  // Loop through all but the last
+  while (Wire.available()) {
+
+    // receive byte as a character
+    char data = Wire.read();
+
+    // Malloc and realloc a sentence,  a list of words
+    if (newReceivedBuffer == NULL)
+      newReceivedBuffer = (char *) malloc(sizeof (char) * (++newReceivedIndex + 1));
+    else
+      newReceivedBuffer = (char *) realloc(newReceivedBuffer, sizeof (char) * (++newReceivedIndex + 1));
+
+    newReceivedBuffer[newReceivedIndex - 1] = data;
+    newReceivedBuffer[newReceivedIndex ] = '\0';
+
+    // We found singleStartIdle character, break it
+    if (newReceivedBuffer[newReceivedIndex - 1] == (char)protocolEndIdle)
+      break;
+  }
+
+  // -----
+
+  if (!decodeData(newReceivedIndex, newReceivedBuffer))
+    unknownEvent(newReceivedIndex, newReceivedBuffer);
+
+  // At the end, free up out-of-date buffer data
+  free(receivedBuffer);
+  receivedBuffer = NULL;
+  receivedBufferSize = 0;
+
+  free(newReceivedBuffer);
+}
+
