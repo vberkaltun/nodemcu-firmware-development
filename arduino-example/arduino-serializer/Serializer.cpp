@@ -138,9 +138,6 @@ void Serializer::fillDecodedList() {
         else
             decodedList.resultData = (char **) realloc(decodedList.resultData, sizeof (char *) * (++decodedList.sizeofResultData));
 
-        // Store the size of received data at the here
-        int32_t sizeofTokenizer = strlen(tokenizer);
-
         // Malloc and realloc a word, a list of characters, after carry it
         decodedList.resultData[decodedList.sizeofResultData - 1] = (char *) malloc(sizeof (char) * (maximumLineWidth + 1));
         strcpy(decodedList.resultData[decodedList.sizeofResultData - 1], tokenizer);
