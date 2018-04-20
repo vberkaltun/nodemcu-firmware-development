@@ -33,7 +33,7 @@
 
 // -----
 
-int32_t Serializer::calculateMaximumLineWidth() {
+unsigned short Serializer::calculateMaximumLineWidth() {
 
     // IMPORTANT NOTICE: In this step, We need to calculate the bigger size of 
     // one line in given array. When we declare a 2D array, program will allocate 
@@ -41,7 +41,7 @@ int32_t Serializer::calculateMaximumLineWidth() {
     // for avoiding of overflow, we must calculate the upper bound all given line
 
     // Store the size of received data at the here
-    int32_t sizeofBuffer = strlen(decodedList.givenData);
+    unsigned short sizeofBuffer = strlen(decodedList.givenData);
 
     char *bufferData = (char *) malloc(sizeof (char) * (sizeofBuffer + 1));
     strcpy(bufferData, decodedList.givenData);
@@ -50,7 +50,7 @@ int32_t Serializer::calculateMaximumLineWidth() {
     // -----
 
     // Store the size of received data at the here
-    int32_t maximumLineWidth = 0;
+    unsigned short maximumLineWidth = 0;
 
     // Store splitting data at the here
     char *tokenizer = strtok(bufferData, decodedList.delimiter);
@@ -58,7 +58,7 @@ int32_t Serializer::calculateMaximumLineWidth() {
     while (tokenizer != NULL) {
 
         // Store the size of received data at the here
-        int32_t sizeofTokenizer = strlen(tokenizer);
+        unsigned short sizeofTokenizer = strlen(tokenizer);
 
         if (sizeofTokenizer > maximumLineWidth)
             maximumLineWidth = sizeofTokenizer;
@@ -72,7 +72,7 @@ int32_t Serializer::calculateMaximumLineWidth() {
     return maximumLineWidth;
 }
 
-void Serializer::clearDecodedList() {
+void Serializer::clearDecodedList(bool isAllData) {
 
     // IMPORTANT NOTICE: seems so confused, right? 
     // When you free up a pointer, you can not use it again anymore 
@@ -85,18 +85,25 @@ void Serializer::clearDecodedList() {
     free(decodedList.givenData);
     decodedList.givenData = NULL;
 
-    for (int index = 0; index < decodedList.sizeofResultData + 1; index++)
-        free(decodedList.resultData[index]);
+    if (isAllData) {
 
-    free(decodedList.resultData);
-    decodedList.resultData = NULL;
+        for (unsigned short index = 0; index < decodedList.sizeofResultData; index++) {
+            free(decodedList.resultData[index]);
+            decodedList.resultData[index] = NULL;
+        }
+
+        free(decodedList.resultData);
+        decodedList.resultData = NULL;
+    }
 
     // -----
 
+    decodedList.sizeofDelimiter = 0;
+    decodedList.sizeofGivenData = 0;
     decodedList.sizeofResultData = 0;
 }
 
-void Serializer::clearEncodedList() {
+void Serializer::clearEncodedList(bool isAllData) {
 
     // IMPORTANT NOTICE: seems so confused, right? 
     // When you free up a pointer, you can not use it again anymore 
@@ -106,17 +113,22 @@ void Serializer::clearEncodedList() {
     free(encodedList.delimiter);
     encodedList.delimiter = NULL;
 
-    free(encodedList.resultData);
-    encodedList.resultData = NULL;
-
-    for (int index = 0; index < encodedList.sizeofGivenData; index++)
+    for (unsigned short index = 0; index < encodedList.sizeofGivenData; index++) {
         free(encodedList.givenData[index]);
+        encodedList.givenData[index] = NULL;
+    }
 
     free(encodedList.givenData);
     encodedList.givenData = NULL;
 
+    if (isAllData) {
+        free(encodedList.resultData);
+        encodedList.resultData = NULL;
+    }
+
     // -----
 
+    encodedList.sizeofDelimiter = 0;
     encodedList.sizeofResultData = 0;
     encodedList.sizeofGivenData = 0;
 }
@@ -124,7 +136,7 @@ void Serializer::clearEncodedList() {
 void Serializer::fillDecodedList() {
 
     // Store the size of received data at the here
-    int32_t maximumLineWidth = calculateMaximumLineWidth();
+    unsigned short maximumLineWidth = calculateMaximumLineWidth();
 
     // Store splitting data at the here
     char *tokenizer = strtok(decodedList.givenData, decodedList.delimiter);
@@ -134,7 +146,6 @@ void Serializer::fillDecodedList() {
         // Malloc and realloc a sentence,  a list of words
         if (decodedList.resultData == NULL)
             decodedList.resultData = (char **) malloc(sizeof (char *) * (++decodedList.sizeofResultData));
-
         else
             decodedList.resultData = (char **) realloc(decodedList.resultData, sizeof (char *) * (++decodedList.sizeofResultData));
 
@@ -159,35 +170,32 @@ void Serializer::fillDecodedList() {
 void Serializer::fillEncodedList() {
 
     // Store the size of received data at the here
-    int32_t sizeofDelimiter = strlen(encodedList.delimiter);
-
-    // Store the size of received data at the here
-    int32_t sizeofAbsolute = (int32_t) sizeofDelimiter - (int32_t) encodedList.sizeofGivenData;
+    int sizeofAbsolute = encodedList.sizeofDelimiter - encodedList.sizeofGivenData;
 
     // -----
 
     // Increase total count of data size
-    encodedList.sizeofResultData += (int32_t) sizeofDelimiter;
+    encodedList.sizeofResultData += encodedList.sizeofDelimiter;
     encodedList.resultData = (char *) malloc(sizeof (char) * (encodedList.sizeofResultData + 1));
 
     // Declare an variable for storing done separator
-    int32_t checkedDelimiter = 0;
-    int32_t currentIndex = 0;
+    unsigned short checkedDelimiter = 0;
+    unsigned short currentIndex = 0;
 
     // If absolute value is bigger than 0, add a delimiter to the first index
     if (sizeofAbsolute >= 0)
         encodedList.resultData[currentIndex++] = encodedList.delimiter[checkedDelimiter++];
 
-    for (int32_t array = 0; array < encodedList.sizeofGivenData; array++) {
+    for (unsigned short array = 0; array < encodedList.sizeofGivenData; array++) {
 
         // Store the size of received data at the here
-        int32_t sizeofBuffer = strlen(encodedList.givenData[array]);
+        unsigned short sizeofBuffer = strlen(encodedList.givenData[array]);
 
         // Get line by line characters and fill result data
-        for (int32_t index = 0; index < sizeofBuffer; index++)
+        for (unsigned short index = 0; index < sizeofBuffer; index++)
             encodedList.resultData[currentIndex++] = encodedList.givenData[array][index];
 
-        if (checkedDelimiter != sizeofDelimiter)
+        if (checkedDelimiter != encodedList.sizeofDelimiter)
             encodedList.resultData[currentIndex++] = encodedList.delimiter[checkedDelimiter++];
     }
 
@@ -197,23 +205,15 @@ void Serializer::fillEncodedList() {
 
 bool Serializer::decodeData() {
 
-    // Store the size of received data at the here
-    int32_t sizeofDelimiter = strlen(decodedList.delimiter);
-
-    // Store the size of received data at the here
-    int32_t sizeofGivenData = strlen(decodedList.givenData);
-
-    // -----
-
     // Declare an variable for storing done separator
-    int32_t checkedDelimiter = 0;
+    unsigned short checkedDelimiter = 0;
 
-    for (int32_t index = 0; index < sizeofGivenData; index++) {
+    for (unsigned short index = 0; index < decodedList.sizeofGivenData; index++) {
 
         // Found status flag, using for to find operate
         bool foundFlag = false;
 
-        for (int32_t subIndex = 0; subIndex < sizeofDelimiter; subIndex++) {
+        for (unsigned short subIndex = 0; subIndex < decodedList.sizeofDelimiter; subIndex++) {
             if (decodedList.delimiter[subIndex] == decodedList.givenData[index]) {
                 foundFlag = true;
                 break;
@@ -224,14 +224,14 @@ bool Serializer::decodeData() {
         if (!foundFlag)
             continue;
 
-        if (checkedDelimiter >= sizeofDelimiter)
+        if (checkedDelimiter >= decodedList.sizeofDelimiter)
             return false;
 
         if (decodedList.delimiter[checkedDelimiter++] != decodedList.givenData[index])
             return false;
     }
 
-    if (checkedDelimiter < sizeofDelimiter)
+    if (checkedDelimiter < decodedList.sizeofDelimiter)
         return false;
 
     // Arrived final function
@@ -242,27 +242,24 @@ bool Serializer::decodeData() {
 
 bool Serializer::encodeData() {
 
-    // Store the size of received data at the here
-    int32_t sizeofDelimiter = strlen(encodedList.delimiter);
-
     // IMPORTANT NOTICE: The absolute value always must be 0 or zero
     // For example, If size of given data is bigger or smaller than 
     // the size of delimiters, we can not have enough delimiters for encoding
     // For this reason, When ABS(s) of delimiters and data is 0 or 1,
     // encoding can be performed very well
-    if (abs((int32_t) encodedList.sizeofGivenData - (int32_t) sizeofDelimiter) > 1)
+    if (abs(encodedList.sizeofGivenData - encodedList.sizeofDelimiter) > 1)
         return false;
-    
+
     // -----
 
-    for (int32_t array = 0; array < encodedList.sizeofGivenData; array++) {
+    for (unsigned short array = 0; array < encodedList.sizeofGivenData; array++) {
 
         // Store the size of received data at the here
-        int32_t sizeofBuffer = strlen(encodedList.givenData[array]);
+        unsigned short sizeofBuffer = strlen(encodedList.givenData[array]);
 
         // Check that whether given data includes a delimiters or not
-        for (int32_t index = 0; index < sizeofBuffer; index++)
-            for (int32_t iterator = 0; iterator < sizeofDelimiter; iterator++)
+        for (unsigned short index = 0; index < sizeofBuffer; index++)
+            for (unsigned short iterator = 0; iterator < encodedList.sizeofDelimiter; iterator++)
                 if (encodedList.givenData[array][index] == encodedList.delimiter[iterator])
                     return false;
 
@@ -289,13 +286,10 @@ Serializer::Serializer() {
 
 // -----
 
-char **Serializer::decode(const char *delimiter, char *givenData) {
+char **Serializer::decode(unsigned short sizeofDelimiter, char delimiter[], unsigned short sizeofGivenData, char givenData[]) {
 
-    // Store the size of received data at the here
-    int32_t sizeofDelimiter = strlen(delimiter);
-
-    // Store the size of received data at the here
-    int32_t sizeofGivenData = strlen(givenData);
+    // Clear last stored data
+    clearDecodedList(true);
 
     if (delimiter == NULL)
         return NULL;
@@ -306,10 +300,11 @@ char **Serializer::decode(const char *delimiter, char *givenData) {
     if (sizeofDelimiter == 0)
         return NULL;
 
-    // -----
+    // Store all received data size on lib
+    decodedList.sizeofDelimiter = sizeofDelimiter;
+    decodedList.sizeofGivenData = sizeofGivenData;
 
-    // Clear last stored data
-    clearDecodedList();
+    // -----
 
     decodedList.delimiter = (char *) malloc(sizeof (char) * (sizeofDelimiter + 1));
     strcpy(decodedList.delimiter, delimiter);
@@ -319,19 +314,22 @@ char **Serializer::decode(const char *delimiter, char *givenData) {
     strcpy(decodedList.givenData, givenData);
     decodedList.givenData[sizeofGivenData] = '\0';
 
-    if (!decodeData())
-        return NULL;
+    // -----
 
-    return decodedList.resultData;
+    bool decodeDataFlag = decodeData();
+
+    if (!decodeDataFlag)
+        clearDecodedList(true);
+    else
+        clearDecodedList(false);
+
+    return (decodeDataFlag ? decodedList.resultData : NULL);
 }
 
-char *Serializer::encode(const char *delimiter, char **givenData) {
+char *Serializer::encode(unsigned short sizeofDelimiter, char delimiter[], unsigned short sizeofGivenData, char *givenData[]) {
 
-    // Store the size of received data at the here
-    int32_t sizeofDelimiter = strlen(delimiter);
-
-    // Store the size of received data at the here
-    int32_t sizeofGivenData = 0;
+    // Clear last stored data
+    clearEncodedList(true);
 
     if (delimiter == NULL)
         return NULL;
@@ -342,16 +340,13 @@ char *Serializer::encode(const char *delimiter, char **givenData) {
     if (sizeofDelimiter == 0)
         return NULL;
 
+    // Store all received data size on lib
+    encodedList.sizeofDelimiter = sizeofDelimiter;
+    encodedList.sizeofGivenData = sizeofGivenData;
+
     // -----
 
-    // Clear last stored data
-    clearEncodedList();
-    
-    // For calculating the size of given data, we use NULL operator
-    while (givenData[sizeofGivenData] != NULL)
-        encodedList.sizeofGivenData = ++sizeofGivenData;
-
-    encodedList.delimiter = (char *) malloc(sizeof (char) * sizeofDelimiter + 1);
+    encodedList.delimiter = (char *) malloc(sizeof (char) * (sizeofDelimiter + 1));
     strcpy(encodedList.delimiter, delimiter);
     encodedList.delimiter[sizeofDelimiter] = '\0';
 
@@ -359,19 +354,22 @@ char *Serializer::encode(const char *delimiter, char **givenData) {
     // If you want to do that, first you must allocate main array memory
     // After that you must to fill each line of main array
     encodedList.givenData = (char **) malloc(sizeof (char *) * (sizeofGivenData + 1));
-    for (int32_t index = 0; index < sizeofGivenData; index++) {
+    for (unsigned short index = 0; index < sizeofGivenData; index++) {
         // Store the size of received data at the here
-        int32_t sizeofArray = strlen(givenData[index]);
-
-        encodedList.givenData[index] = (char *) malloc(sizeof (char) * sizeofArray + 1);
+        unsigned short sizeofArray = strlen(givenData[index]);
+        encodedList.givenData[index] = (char *) malloc(sizeof (char) * (sizeofArray + 1));
         strcpy(encodedList.givenData[index], givenData[index]);
     }
     encodedList.givenData[sizeofGivenData] = '\0';
 
-    if (!encodeData())
-        return NULL;
+    bool encodeDataFlag = encodeData();
 
-    return encodedList.resultData;
+    if (!encodeDataFlag)
+        clearEncodedList(true);
+    else
+        clearEncodedList(false);
+
+    return (encodeDataFlag ? encodedList.resultData : NULL);
 }
 
 // -----

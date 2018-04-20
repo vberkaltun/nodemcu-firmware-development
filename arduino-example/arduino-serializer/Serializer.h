@@ -45,26 +45,30 @@ class Serializer {
 private:
 
     struct decodedData {
+        unsigned short sizeofDelimiter = 0;
+        unsigned short sizeofGivenData = 0;
+        unsigned short sizeofResultData = 0;
         char *delimiter = NULL;
-        int32_t sizeofResultData = 0;
         char *givenData = NULL;
         char **resultData = NULL;
     } decodedList;
 
     struct encodedData {
+        unsigned short sizeofDelimiter = 0;
+        unsigned short sizeofResultData = 0;
+        unsigned short sizeofGivenData = 0;
         char *delimiter = NULL;
-        int32_t sizeofResultData = 0;
-        int32_t sizeofGivenData = 0;
-        char *resultData = NULL;
         char **givenData = NULL;
+        char *resultData = NULL;
+
     } encodedList;
 
     // -----
 
-    int32_t calculateMaximumLineWidth();
+    unsigned short calculateMaximumLineWidth();
 
-    void clearDecodedList();
-    void clearEncodedList();
+    void clearDecodedList(bool isAllData);
+    void clearEncodedList(bool isAllData);
 
     void fillDecodedList();
     void fillEncodedList();
@@ -76,8 +80,8 @@ public:
 
     Serializer();
 
-    char **decode(const char *delimiter, char *givenData);
-    char *encode(const char *delimiter, char **givenData);
+    char **decode(unsigned short sizeofDelimiter, char delimiter[], unsigned short sizeofGivenData, char givenData[]);
+    char *encode(unsigned short sizeofDelimiter, char delimiter[], unsigned short sizeofGivenData, char *givenData[]);
 };
 
 extern Serializer Serialization;
