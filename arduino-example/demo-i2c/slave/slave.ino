@@ -262,3 +262,65 @@ bool decodeData(int sizeofData, char data[]) {
   return true;
 }
 
+bool encodeData(char data[]) {
+
+  if (data == NULL)
+    return false;
+
+  // First, calculete size of delimiters and store it
+  int delimiterSize = strlen(protocolDelimiters) + 1;
+
+  // Second, calculete size of data and store it
+  givenBufferSize = (strlen(data) / DIVISOR_NUMBER);
+
+  if ((strlen(data) % DIVISOR_NUMBER) > 0)
+    givenBufferSize++;
+
+  // Malloc and realloc a sentence,  a list of words
+  if (givenBuffer == NULL)
+    givenBuffer = (char **) malloc(sizeof (char *) * (givenBufferSize + 1));
+  else
+    givenBuffer = (char **) realloc(givenBuffer, sizeof (char *) * (givenBufferSize + 1));
+
+  // -----
+
+  for (int index = 0; index < givenBufferSize; index++) {
+
+    givenBuffer[index] = (char *) malloc(sizeof (char) * (DIVISOR_NUMBER + delimiterSize + 1));
+    givenBuffer[index][0] = protocolDelimiters[0];
+
+    for (int subIndex = 0;; subIndex++) {
+
+      if (data[(index * DIVISOR_NUMBER) + subIndex] == '\0' || subIndex == DIVISOR_NUMBER) {
+
+        givenBuffer[index][subIndex + 1] = protocolDelimiters[1];
+
+        // IMPORTANT NOTICE: At the here, We have two status for encoding data(s)
+        // If you set the penultimate char as multiSTART, this means data is still available
+        // For encoding. But if you set this var as multiEND, this means encoding is over
+        // We are making this for receiver side. singleSTART means that data can encode
+        // As one packet, do not need any more encoding
+        if (givenBufferSize == 1)
+          givenBuffer[index][subIndex + 2] = (char)singleStartIdle;
+        else if (index == givenBufferSize - 1)
+          givenBuffer[index][subIndex + 2] = (char)multiEndIdle;
+        else
+          givenBuffer[index][subIndex + 2] = (char)multiStartIdle;
+
+        givenBuffer[index][subIndex + 3] = protocolDelimiters[2];
+        givenBuffer[index][subIndex + 4] = '\0';
+
+        break;
+      }
+
+      givenBuffer[index][subIndex + 1] = data[(index * DIVISOR_NUMBER) + subIndex];
+    }
+  }
+
+  // Do not forget to end-of-line char to tail of 2D array
+  givenBuffer[givenBufferSize] = '\0';
+
+  // If everything goes well, we will arrive here and return true
+  return true;
+}
+
