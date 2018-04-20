@@ -115,3 +115,17 @@ void requestEvent() {
   }
 }
 
+void unknownEvent(int sizeofData, char data[]) {
+
+  // Notify user
+  Serial.println("Error!");
+
+  Serial.print("Unexpected <");
+  Serial.print(data);
+  Serial.print(">[");
+  Serial.print(sizeofData);
+  Serial.println("] data received.");
+
+  Serial.println(freeMemory());
+}
+
