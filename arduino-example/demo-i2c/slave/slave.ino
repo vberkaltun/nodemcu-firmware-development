@@ -129,3 +129,61 @@ void unknownEvent(int sizeofData, char data[]) {
   Serial.println(freeMemory());
 }
 
+void executeEvent(int sizeofData, char data[]) {
+
+  // Store index of found function
+  int foundIndex = -1;
+
+  // Decode given data and store it
+  char **insideData = Serialization.decode(dataDelimiters, data);
+
+  for (int index = 0; index < functionListSize; index++) {
+
+    // Null operator check
+    if (insideData == NULL)
+      break;
+
+    // Null operator check
+    if (insideData[0] == NULL || insideData[1] == NULL)
+      break;
+
+    // -----
+
+    // Calculate registered function length at the given index
+    int sizeofInternalFunction = strlen(functionList[index]);
+
+    // Calculate registered function length at the given index
+    int sizeofExternalFunction = strlen(insideData[0]);
+
+    // Data size check
+    if (sizeofInternalFunction != sizeofExternalFunction)
+      break;
+
+    // -----
+
+    // Found status flag, using for to find operate
+    bool foundFlag = true;
+
+    for (int subIndex = 0; subIndex < sizeofInternalFunction; subIndex++) {
+      if (insideData[0][subIndex] != functionList[index][subIndex]) {
+        foundFlag = false;
+        break;
+      }
+    }
+
+    // If a function found in function list,
+    // Store index of this function and break loop
+    if (foundFlag) {
+      foundIndex = index;
+      break;
+    }
+  }
+  
+  // At the end, free up out-of-date buffer data
+  free(insideData[0]);
+  free(insideData[1]);
+  insideData = NULL;
+
+  Serial.println(freeMemory());
+}
+
