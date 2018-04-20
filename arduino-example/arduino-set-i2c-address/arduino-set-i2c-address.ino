@@ -13,22 +13,27 @@ void setup() {
   Serial.begin(9600);
 
   // Notify of erase...
-  Serial.println("Initializing... ");
+  Serial.print("Initializing... ");
 
   // Clear all eeprom addres on device
   for (int index = 0 ; index < EEPROM.length() ; index++)
     EEPROM.write(index, 0);
 
-  // Notify of erase...
-  Serial.println("Done! All EEPROM addresses was cleared successfully.");
+  // Notify of init...
+  Serial.println("OK.");
+  delay(1000);
 
+  // Notify of erase...
+  Serial.println("All EEPROM addresses was cleared successfully.");
+  delay(1000);
+  
   // -----
 
   // Set ours new device address to address field
   EEPROM.write(EEPROM_ADDRESS, deviceAddress);
 
   // Done! Notify user
-  Serial.print("Done! The given device address [");
+  Serial.print("Device address [");
   Serial.print("0x");
   Serial.print(EEPROM.read(EEPROM_ADDRESS), HEX);
   Serial.print("] was setted to given eeprom address [");
