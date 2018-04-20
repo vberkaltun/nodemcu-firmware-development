@@ -59,7 +59,7 @@ void setup() {
 void loop() {
 }
 
-void receiveEvent(int sizeofData) {
+void receiveEvent() {
 
   // Declare a new variable about given size
   char *newReceivedBuffer;
@@ -118,9 +118,7 @@ void requestEvent() {
 void unknownEvent(unsigned short sizeofData, char data[]) {
 
   // Notify user
-  Serial.println("Error!");
-
-  Serial.print("Unexpected <");
+  Serial.print("Error! Unexpected <");
   Serial.print(data);
   Serial.print(">[");
   Serial.print(sizeofData);
@@ -132,12 +130,13 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
 void executeEvent(unsigned short sizeofData, char data[]) {
 
   // Store index of found function
-  int foundIndex = -1;
+  char foundIndex = 0;
+  bool foundFlag = true;
 
   // Decode given data and store it
   char **insideData = Serialization.decode(dataDelimiters, data);
 
-  for (int index = 0; index < functionListSize; index++) {
+  for (char index = 0; index < functionListSize; index++) {
 
     // Null operator check
     if (insideData == NULL)
@@ -162,7 +161,7 @@ void executeEvent(unsigned short sizeofData, char data[]) {
     // -----
 
     // Found status flag, using for to find operate
-    bool foundFlag = true;
+    foundFlag = true;
 
     for (unsigned short subIndex = 0; subIndex < sizeofInternalFunction; subIndex++) {
       if (insideData[0][subIndex] != functionList[index][subIndex]) {
@@ -172,24 +171,24 @@ void executeEvent(unsigned short sizeofData, char data[]) {
     }
 
     // If a function found in function list,
-    // Store index of this function and break loop
+    // Store index of this function and break current loop
     if (foundFlag) {
       foundIndex = index;
       break;
     }
   }
-  
-  // At the end, free up out-of-date buffer data
-  free(insideData[0]);
-  free(insideData[1]);
-  insideData = NULL;
 
+  // In the worst case, we can not find a function and found index is -1
+  if (foundFlag)
+    callReceivedFunction(foundIndex, insideData[1]);
+  else
+    unknownEvent(sizeofData, data);
   Serial.println(freeMemory());
 }
 
 void callReceivedFunction(unsigned short index, char data[]) {
 
-  Serial.print(data);
+  Serial.println(data);
 }
 
 char* popGivenBuffer() {
