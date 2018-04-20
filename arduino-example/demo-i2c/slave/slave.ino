@@ -29,19 +29,19 @@ const char multiStartIdle = 0x1A;
 const char multiEndIdle = 0x16;
 const char protocolEndIdle = 0x1B;
 
-const int functionListSize = 2;
+const char functionListSize = 2;
 const char* functionList[] = {"getVendors",
                               "getFunctionList"
                              };
 
 // Do not change default value of this variable
 char* receivedBuffer = NULL;
-int receivedBufferSize = 0;
+unsigned short receivedBufferSize = 0;
 
 // Do not change default value of this variable
 char** givenBuffer = NULL;
-int givenBufferSize = 0;
-int givenBufferIndex = 0;
+unsigned short givenBufferSize = 0;
+unsigned short givenBufferIndex = 0;
 
 void setup() {
 
@@ -63,7 +63,7 @@ void receiveEvent(int sizeofData) {
 
   // Declare a new variable about given size
   char *newReceivedBuffer;
-  int newReceivedIndex = 0;
+  unsigned short newReceivedIndex = 0;
 
   // Loop through all but the last
   while (Wire.available()) {
@@ -115,7 +115,7 @@ void requestEvent() {
   }
 }
 
-void unknownEvent(int sizeofData, char data[]) {
+void unknownEvent(unsigned short sizeofData, char data[]) {
 
   // Notify user
   Serial.println("Error!");
@@ -129,7 +129,7 @@ void unknownEvent(int sizeofData, char data[]) {
   Serial.println(freeMemory());
 }
 
-void executeEvent(int sizeofData, char data[]) {
+void executeEvent(unsigned short sizeofData, char data[]) {
 
   // Store index of found function
   int foundIndex = -1;
@@ -150,10 +150,10 @@ void executeEvent(int sizeofData, char data[]) {
     // -----
 
     // Calculate registered function length at the given index
-    int sizeofInternalFunction = strlen(functionList[index]);
+    unsigned short sizeofInternalFunction = strlen(functionList[index]);
 
     // Calculate registered function length at the given index
-    int sizeofExternalFunction = strlen(insideData[0]);
+    unsigned short sizeofExternalFunction = strlen(insideData[0]);
 
     // Data size check
     if (sizeofInternalFunction != sizeofExternalFunction)
@@ -164,7 +164,7 @@ void executeEvent(int sizeofData, char data[]) {
     // Found status flag, using for to find operate
     bool foundFlag = true;
 
-    for (int subIndex = 0; subIndex < sizeofInternalFunction; subIndex++) {
+    for (unsigned short subIndex = 0; subIndex < sizeofInternalFunction; subIndex++) {
       if (insideData[0][subIndex] != functionList[index][subIndex]) {
         foundFlag = false;
         break;
@@ -187,7 +187,7 @@ void executeEvent(int sizeofData, char data[]) {
   Serial.println(freeMemory());
 }
 
-void callReceivedFunction(int index, char data[]) {
+void callReceivedFunction(unsigned short index, char data[]) {
 
   Serial.print(data);
 }
@@ -199,7 +199,7 @@ char* popGivenBuffer() {
 
   if (givenBufferIndex >= givenBufferSize) {
 
-    for (int index = 0; index < givenBufferSize; index++)
+    for (unsigned short index = 0; index < givenBufferSize; index++)
       free(givenBuffer[index]);
 
     free(givenBuffer);
@@ -212,7 +212,7 @@ char* popGivenBuffer() {
   return givenBuffer[givenBufferIndex++];
 }
 
-bool decodeData(int sizeofData, char data[]) {
+bool decodeData(unsigned short sizeofData, char data[]) {
 
   // Decode given data and store it
   char **newReceivedBuffer = Serialization.decode(protocolDelimiters, data);
@@ -237,7 +237,7 @@ bool decodeData(int sizeofData, char data[]) {
   // -----
 
   // Calculate up-of-date and needed buffer size
-  int newReceivedSize = strlen(newReceivedBuffer[0]);
+  unsigned short newReceivedSize = strlen(newReceivedBuffer[0]);
 
   // Malloc and realloc a sentence,  a list of words
   if (receivedBuffer == NULL)
@@ -245,7 +245,7 @@ bool decodeData(int sizeofData, char data[]) {
   else
     receivedBuffer = (char *) realloc(receivedBuffer, sizeof (char) * (receivedBufferSize + newReceivedSize + 1));
 
-  for (int index = 0; index < newReceivedSize; index++)
+  for (unsigned short index = 0; index < newReceivedSize; index++)
     receivedBuffer[receivedBufferSize + index] = newReceivedBuffer[0][index];
 
   // Add an endofline character to tail
@@ -268,7 +268,7 @@ bool encodeData(char data[]) {
     return false;
 
   // First, calculete size of delimiters and store it
-  int delimiterSize = strlen(protocolDelimiters) + 1;
+  unsigned short delimiterSize = strlen(protocolDelimiters) + 1;
 
   // Second, calculete size of data and store it
   givenBufferSize = (strlen(data) / DIVISOR_NUMBER);
@@ -284,12 +284,12 @@ bool encodeData(char data[]) {
 
   // -----
 
-  for (int index = 0; index < givenBufferSize; index++) {
+  for (unsigned short index = 0; index < givenBufferSize; index++) {
 
     givenBuffer[index] = (char *) malloc(sizeof (char) * (DIVISOR_NUMBER + delimiterSize + 1));
     givenBuffer[index][0] = protocolDelimiters[0];
 
-    for (int subIndex = 0;; subIndex++) {
+    for (unsigned short subIndex = 0;; subIndex++) {
 
       if (data[(index * DIVISOR_NUMBER) + subIndex] == '\0' || subIndex == DIVISOR_NUMBER) {
 
@@ -324,25 +324,25 @@ bool encodeData(char data[]) {
   return true;
 }
 
-bool isNumeric(int sizeofData, char data[]) {
+bool isNumeric(unsigned short sizeofData, char data[]) {
 
   if (data == NULL)
     return false;
 
-  for (uint16_t index = 0; index < sizeofData; index++)
+  for (unsigned short index = 0; index < sizeofData; index++)
     if (isdigit(data[index]) == 0)
       return false;
 
   return true;
 }
 
-bool isAlphanumeric(int sizeofData, char data[]) {
+bool isAlphanumeric(unsigned short sizeofData, char data[]) {
 
   if (data == NULL)
     return false;
 
   // Check function ID, type is alphanumeric
-  for (uint16_t index = 0; index < sizeofData; index++)
+  for (unsigned short index = 0; index < sizeofData; index++)
     if (isalnum(data[index]) == 0)
       return false;
 
