@@ -42,3 +42,20 @@ int receivedBufferSize = 0;
 char** givenBuffer = NULL;
 int givenBufferSize = 0;
 int givenBufferIndex = 0;
+
+void setup() {
+
+  // Register events, onReceive and onRequest
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
+
+  // Initialize communication on serial protocol
+  Serial.begin(9600);
+
+  // Initialize communication on Wire protocol
+  Wire.begin(EEPROM.read(EEPROM_ADDRESS));
+}
+
+void loop() {
+}
+
