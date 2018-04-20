@@ -30,7 +30,7 @@ void setup() {
   // Done! Notify user
   Serial.print("Done! The given device address [");
   Serial.print("0x");
-  Serial.print(deviceAddress, HEX);
+  Serial.print(EEPROM.read(EEPROM_ADDRESS), HEX);
   Serial.print("] was setted to given eeprom address [");
   Serial.print("0x");
   Serial.print(EEPROM_ADDRESS, HEX);
