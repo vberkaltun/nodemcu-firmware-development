@@ -212,3 +212,53 @@ char* popGivenBuffer() {
   return givenBuffer[givenBufferIndex++];
 }
 
+bool decodeData(int sizeofData, char data[]) {
+
+  // Decode given data and store it
+  char **newReceivedBuffer = Serialization.decode(protocolDelimiters, data);
+
+  // Null operator check
+  if (newReceivedBuffer == NULL)
+    return false;
+
+  // Null operator check
+  if (newReceivedBuffer[0] == NULL || newReceivedBuffer[1] == NULL)
+    return false;
+
+  switch (newReceivedBuffer[1][0] ) {
+    case singleStartIdle:
+    case multiStartIdle:
+    case multiEndIdle:
+      break;
+    default:
+      return false;
+  }
+
+  // -----
+
+  // Calculate up-of-date and needed buffer size
+  int newReceivedSize = strlen(newReceivedBuffer[0]);
+
+  // Malloc and realloc a sentence,  a list of words
+  if (receivedBuffer == NULL)
+    receivedBuffer = (char *) malloc(sizeof (char) * (receivedBufferSize + newReceivedSize + 1));
+  else
+    receivedBuffer = (char *) realloc(receivedBuffer, sizeof (char) * (receivedBufferSize + newReceivedSize + 1));
+
+  for (int index = 0; index < newReceivedSize; index++)
+    receivedBuffer[receivedBufferSize + index] = newReceivedBuffer[0][index];
+
+  // Add an endofline character to tail
+  receivedBuffer[receivedBufferSize + newReceivedSize] = '\0';
+  receivedBufferSize += newReceivedSize;
+
+  // -----
+
+  // Go to next step, decoding inside data
+  if (newReceivedBuffer[1][0] == (char)singleStartIdle || newReceivedBuffer[1][0] == (char)multiEndIdle)
+    executeEvent(receivedBufferSize, receivedBuffer);
+
+  // If everything goes well, we will arrive here and return true
+  return true;
+}
+
