@@ -187,3 +187,28 @@ void executeEvent(int sizeofData, char data[]) {
   Serial.println(freeMemory());
 }
 
+void callReceivedFunction(int index, char data[]) {
+
+  Serial.print(data);
+}
+
+char* popGivenBuffer() {
+
+  if (givenBuffer == NULL)
+    return NULL;
+
+  if (givenBufferIndex >= givenBufferSize) {
+
+    for (int index = 0; index < givenBufferSize; index++)
+      free(givenBuffer[index]);
+
+    free(givenBuffer);
+    givenBuffer = NULL;
+    givenBufferIndex = 0;
+
+    return NULL;
+  }
+
+  return givenBuffer[givenBufferIndex++];
+}
+
