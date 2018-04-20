@@ -186,10 +186,11 @@ void Serializer::fillEncodedList() {
         // Store the size of received data at the here
         int32_t sizeofBuffer = strlen(encodedList.givenData[array]);
 
+        // Get line by line characters and fill result data
         for (int32_t index = 0; index < sizeofBuffer; index++)
             encodedList.resultData[currentIndex++] = encodedList.givenData[array][index];
 
-        if (checkedDelimiter != encodedList.delimiter)
+        if (checkedDelimiter != sizeofDelimiter)
             encodedList.resultData[currentIndex++] = encodedList.delimiter[checkedDelimiter++];
     }
 
@@ -249,6 +250,7 @@ bool Serializer::encodeData() {
 
     if (abs((int32_t) encodedList.sizeofGivenData - (int32_t) sizeofDelimiter) > 1)
         return false;
+    
     // -----
 
     for (int32_t array = 0; array < encodedList.sizeofGivenData; array++) {
@@ -256,6 +258,7 @@ bool Serializer::encodeData() {
         // Store the size of received data at the here
         int32_t sizeofBuffer = strlen(encodedList.givenData[array]);
 
+        // Check that whether given data includes a delimiters or not
         for (int32_t index = 0; index < sizeofBuffer; index++)
             for (int32_t iterator = 0; iterator < sizeofDelimiter; iterator++)
                 if (encodedList.givenData[array][index] == encodedList.delimiter[iterator])
