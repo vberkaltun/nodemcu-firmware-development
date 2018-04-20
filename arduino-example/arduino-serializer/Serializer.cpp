@@ -341,13 +341,14 @@ char *Serializer::encode(const char *delimiter, char **givenData) {
 
     // Clear last stored data
     clearEncodedList();
+    
+    // For calculating the size of given data, we use NULL operator
+    while (givenData[sizeofGivenData] != NULL)
+        encodedList.sizeofGivenData = ++sizeofGivenData;
 
     encodedList.delimiter = (char *) malloc(sizeof (char) * sizeofDelimiter + 1);
     strcpy(encodedList.delimiter, delimiter);
     encodedList.delimiter[sizeofDelimiter] = '\0';
-
-    while (givenData[sizeofGivenData] != NULL) sizeofGivenData++;
-    encodedList.sizeofGivenData = sizeofGivenData;
 
     // IMPORTANT NOTICE: In Clang, there is no way out to copy 2D array
     // If you want to do that, first you must allocate main array memory
