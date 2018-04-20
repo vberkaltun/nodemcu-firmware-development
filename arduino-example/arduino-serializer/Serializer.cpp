@@ -248,6 +248,11 @@ bool Serializer::encodeData() {
     // Store the size of received data at the here
     int32_t sizeofDelimiter = strlen(encodedList.delimiter);
 
+    // IMPORTANT NOTICE: The absolute value always must be 0 or zero
+    // For example, If size of given data is bigger or smaller than 
+    // the size of delimiters, we can not have enough delimiters for encoding
+    // For this reason, When ABS(s) of delimiters and data is 0 or 1,
+    // encoding can be performed very well
     if (abs((int32_t) encodedList.sizeofGivenData - (int32_t) sizeofDelimiter) > 1)
         return false;
     
