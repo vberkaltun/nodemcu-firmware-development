@@ -347,3 +347,18 @@ bool isAlphanumeric(unsigned short sizeofData, char data[]) {
 // ----- INTERNAL FUNC(S) -------------------------------------
 // ------------------------------------------------------------
 
+void getVendors() {
+
+  char inlineDelimiter[] = {sectionIdle, sectionIdle};
+  char* inlineData[] = {DEVICE_BRAND, DEVICE_MODEL, DEVICE_VERSION};
+  char* outputData = Serialization.encode(2, inlineDelimiter, 3, inlineData);
+
+  Serial.println(outputData);
+}
+
+void getFunctionList() {
+
+  char inlineDelimiter[] = {sectionIdle};
+  char* outputData = Serialization.encode(1, inlineDelimiter, sizeofFunctionList, functionList);
+  Serial.println(outputData);
+}
