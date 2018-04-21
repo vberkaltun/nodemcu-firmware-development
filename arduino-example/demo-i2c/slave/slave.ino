@@ -20,28 +20,33 @@
 // We should split it. Then we can send our data to master
 #define DIVISOR_NUMBER 25
 
-// In sequence, delimiters is 0x1C, 0x1D and 0x1B - 0x1E
-const char* protocolDelimiters = "";
-const char* dataDelimiters = "";
+// In sequence, delimiters is 0x18, 0x1B and 0x1C - 0x1D
+unsigned short sizeofProtocolDelimiters = 3;
+const char* protocolDelimiters = "";
 
-const char singleStartIdle = 0x1E;
-const char multiStartIdle = 0x1A;
-const char multiEndIdle = 0x16;
-const char protocolEndIdle = 0x1B;
+unsigned short sizeofDataDelimiters = 1;
+const char* dataDelimiters = "";
 
-const char functionListSize = 2;
+const char nullIdle = 0x1E;
+const char sectionIdle = 0x1F;
+
+const char singleStartIdle = 0x15;
+const char multiStartIdle = 0x16;
+const char multiEndIdle = 0x17;
+
+const char sizeofFunctionList = 2;
 const char* functionList[] = {"getVendors",
                               "getFunctionList"
                              };
 
 // Do not change default value of this variable
 char* receivedBuffer = NULL;
-unsigned short receivedBufferSize = 0;
+unsigned short sizeofReceivedBuffer = 0;
 
 // Do not change default value of this variable
 char** givenBuffer = NULL;
-unsigned short givenBufferSize = 0;
-unsigned short givenBufferIndex = 0;
+unsigned short sizeofGivenBuffer = 0;
+unsigned short indexofGivenBuffer = 0;
 
 void setup() {
 
