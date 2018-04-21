@@ -59,6 +59,9 @@ void setup() {
 
   // Initialize communication on Wire protocol
   Wire.begin(EEPROM.read(EEPROM_ADDRESS));
+
+  getVendors();
+  getFunctionList();
 }
 
 void loop() {
@@ -68,7 +71,7 @@ void receiveEvent() {
 
   // Declare a new variable about given size
   char *newReceivedBuffer;
-  unsigned short newReceivedIndex = 0;
+  unsigned short indexofNewReceivedBuffer = 0;
 
   // Loop through all but the last
   while (Wire.available()) {
@@ -78,27 +81,22 @@ void receiveEvent() {
 
     // Malloc and realloc a sentence,  a list of words
     if (newReceivedBuffer == NULL)
-      newReceivedBuffer = (char *) malloc(sizeof (char) * (++newReceivedIndex + 1));
+      newReceivedBuffer = (char *) malloc(sizeof (char) * (++indexofNewReceivedBuffer + 1));
     else
-      newReceivedBuffer = (char *) realloc(newReceivedBuffer, sizeof (char) * (++newReceivedIndex + 1));
+      newReceivedBuffer = (char *) realloc(newReceivedBuffer, sizeof (char) * (++indexofNewReceivedBuffer + 1));
 
-    newReceivedBuffer[newReceivedIndex - 1] = data;
-    newReceivedBuffer[newReceivedIndex ] = '\0';
+    newReceivedBuffer[indexofNewReceivedBuffer - 1] = data;
+    newReceivedBuffer[indexofNewReceivedBuffer ] = '\0';
 
     // We found singleStartIdle character, break it
-    if (newReceivedBuffer[newReceivedIndex - 1] == (char)protocolEndIdle)
+    if (newReceivedBuffer[indexofNewReceivedBuffer - 1] == (char)protocolDelimiters[2])
       break;
   }
 
   // -----
 
-  if (!decodeData(newReceivedIndex, newReceivedBuffer))
-    unknownEvent(newReceivedIndex, newReceivedBuffer);
-
-  // At the end, free up out-of-date buffer data
-  free(receivedBuffer);
-  receivedBuffer = NULL;
-  receivedBufferSize = 0;
+  if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
+    unknownEvent(indexofNewReceivedBuffer, newReceivedBuffer);
 
   free(newReceivedBuffer);
 }
@@ -112,10 +110,8 @@ void requestEvent() {
     Wire.write(subGivenData);
   else {
 
-    // When given data is NULL, add an value as NULL
-    encodeData("NULL");
-
-    // ... And pop that to I2C bus
+    // When given data is NULL, add an value as NULL and write it
+    encodeData(strlen(nullIdle), nullIdle);
     Wire.write(popGivenBuffer());
   }
 }
@@ -128,8 +124,6 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
   Serial.print(">[");
   Serial.print(sizeofData);
   Serial.println("] data received.");
-
-  Serial.println(freeMemory());
 }
 
 void executeEvent(unsigned short sizeofData, char data[]) {
@@ -139,9 +133,9 @@ void executeEvent(unsigned short sizeofData, char data[]) {
   bool foundFlag = true;
 
   // Decode given data and store it
-  char **insideData = Serialization.decode(dataDelimiters, data);
+  char **insideData = Serialization.decode(sizeofDataDelimiters, dataDelimiters, sizeofData, data);
 
-  for (char index = 0; index < functionListSize; index++) {
+  for (char index = 0; index < sizeofFunctionList; index++) {
 
     // Null operator check
     if (insideData == NULL)
@@ -150,8 +144,6 @@ void executeEvent(unsigned short sizeofData, char data[]) {
     // Null operator check
     if (insideData[0] == NULL || insideData[1] == NULL)
       break;
-
-    // -----
 
     // Calculate registered function length at the given index
     unsigned short sizeofInternalFunction = strlen(functionList[index]);
@@ -188,7 +180,6 @@ void executeEvent(unsigned short sizeofData, char data[]) {
     callReceivedFunction(foundIndex, insideData[1]);
   else
     unknownEvent(sizeofData, data);
-  Serial.println(freeMemory());
 }
 
 void callReceivedFunction(unsigned short index, char data[]) {
@@ -201,25 +192,32 @@ char* popGivenBuffer() {
   if (givenBuffer == NULL)
     return NULL;
 
-  if (givenBufferIndex >= givenBufferSize) {
+  // When we arrived the last item of given data, clear all data
+  if (indexofGivenBuffer >= sizeofGivenBuffer) {
 
-    for (unsigned short index = 0; index < givenBufferSize; index++)
+    // Clearn code on 2D array
+    for (unsigned short index = 0; index < sizeofGivenBuffer; index++)
       free(givenBuffer[index]);
 
     free(givenBuffer);
     givenBuffer = NULL;
-    givenBufferIndex = 0;
+    sizeofGivenBuffer = 0;
+    indexofGivenBuffer = 0;
 
     return NULL;
   }
 
-  return givenBuffer[givenBufferIndex++];
+  return givenBuffer[indexofGivenBuffer++];
 }
 
 bool decodeData(unsigned short sizeofData, char data[]) {
 
-  // Decode given data and store it
-  char **newReceivedBuffer = Serialization.decode(protocolDelimiters, data);
+  if (sizeofData == 0 || data == NULL)
+    return false;
+
+  // Decode given data, Calculate up-of-date and needed buffer size
+  char **newReceivedBuffer = Serialization.decode(sizeofProtocolDelimiters, protocolDelimiters, sizeofData, data);
+  unsigned short sizeofNewReceivedBuffer = strlen(newReceivedBuffer[0]);
 
   // Null operator check
   if (newReceivedBuffer == NULL)
@@ -228,6 +226,8 @@ bool decodeData(unsigned short sizeofData, char data[]) {
   // Null operator check
   if (newReceivedBuffer[0] == NULL || newReceivedBuffer[1] == NULL)
     return false;
+
+  // -----
 
   switch (newReceivedBuffer[1][0] ) {
     case singleStartIdle:
