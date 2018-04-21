@@ -233,91 +233,86 @@ bool decodeData(unsigned short sizeofData, char data[]) {
       return false;
   }
 
-  // -----
-
-  // Calculate up-of-date and needed buffer size
-  unsigned short newReceivedSize = strlen(newReceivedBuffer[0]);
-
   // Malloc and realloc a sentence,  a list of words
   if (receivedBuffer == NULL)
-    receivedBuffer = (char *) malloc(sizeof (char) * (receivedBufferSize + newReceivedSize + 1));
+    receivedBuffer = (char *) malloc(sizeof (char) * (sizeofReceivedBuffer + sizeofNewReceivedBuffer + 1));
   else
-    receivedBuffer = (char *) realloc(receivedBuffer, sizeof (char) * (receivedBufferSize + newReceivedSize + 1));
+    receivedBuffer = (char *) realloc(receivedBuffer, sizeof (char) * (sizeofReceivedBuffer + sizeofNewReceivedBuffer + 1));
 
-  for (unsigned short index = 0; index < newReceivedSize; index++)
-    receivedBuffer[receivedBufferSize + index] = newReceivedBuffer[0][index];
+  for (unsigned short index = 0; index < sizeofNewReceivedBuffer; index++)
+    receivedBuffer[sizeofReceivedBuffer + index] = newReceivedBuffer[0][index];
 
   // Add an endofline character to tail
-  receivedBuffer[receivedBufferSize + newReceivedSize] = '\0';
-  receivedBufferSize += newReceivedSize;
+  receivedBuffer[sizeofReceivedBuffer + sizeofNewReceivedBuffer] = '\0';
+  sizeofReceivedBuffer += sizeofNewReceivedBuffer;
 
   // -----
 
   // Go to next step, decoding inside data
-  if (newReceivedBuffer[1][0] == (char)singleStartIdle || newReceivedBuffer[1][0] == (char)multiEndIdle)
-    executeEvent(receivedBufferSize, receivedBuffer);
+  if (newReceivedBuffer[1][0] == (char)singleStartIdle || newReceivedBuffer[1][0] == (char)multiEndIdle) {
+    executeEvent(sizeofReceivedBuffer, receivedBuffer);
+
+    // At the end, free up out-of-date buffer data
+    free(receivedBuffer);
+    receivedBuffer = NULL;
+    sizeofReceivedBuffer = 0;
+  }
 
   // If everything goes well, we will arrive here and return true
   return true;
 }
 
-bool encodeData(char data[]) {
+bool encodeData(unsigned short sizeofData, char data[]) {
 
-  if (data == NULL)
+  if (sizeofData == 0 || data == NULL)
     return false;
 
-  // First, calculete size of delimiters and store it
-  unsigned short delimiterSize = strlen(protocolDelimiters) + 1;
+  // Second, calculete size of data and modulus
+  unsigned short modulusofGivenBuffer = (strlen(data) % DIVISOR_NUMBER);
+  sizeofGivenBuffer = (strlen(data) / DIVISOR_NUMBER);
 
-  // Second, calculete size of data and store it
-  givenBufferSize = (strlen(data) / DIVISOR_NUMBER);
-
-  if ((strlen(data) % DIVISOR_NUMBER) > 0)
-    givenBufferSize++;
+  // Add modulos of data, if possible
+  if (modulusofGivenBuffer > 0)
+    sizeofGivenBuffer++;
 
   // Malloc and realloc a sentence,  a list of words
   if (givenBuffer == NULL)
-    givenBuffer = (char **) malloc(sizeof (char *) * (givenBufferSize + 1));
+    givenBuffer = (char **) malloc(sizeof (char *) * (sizeofGivenBuffer + 1));
   else
-    givenBuffer = (char **) realloc(givenBuffer, sizeof (char *) * (givenBufferSize + 1));
+    givenBuffer = (char **) realloc(givenBuffer, sizeof (char *) * (sizeofGivenBuffer + 1));
 
   // -----
 
-  for (unsigned short index = 0; index < givenBufferSize; index++) {
+  for (unsigned short index = 0; index < sizeofGivenBuffer; index++) {
 
-    givenBuffer[index] = (char *) malloc(sizeof (char) * (DIVISOR_NUMBER + delimiterSize + 1));
+    givenBuffer[index] = (char *) malloc(sizeof (char) * (DIVISOR_NUMBER + sizeofProtocolDelimiters + 1));
+
+    unsigned short subIndex;
+    unsigned short upperBound = (index == sizeofGivenBuffer - 1 ? modulusofGivenBuffer : DIVISOR_NUMBER);
+
+    for (subIndex = 0; subIndex < upperBound; subIndex++)
+      givenBuffer[index][subIndex + 1] = data[(index * upperBound) + subIndex];
+
+    // IMPORTANT NOTICE: At the here, We have two status for encoding data(s)
+    // If you set the penultimate char as multiSTART, this means data is still available
+    // For encoding. But if you set this var as multiEND, this means encoding is over
+    // We are making this for receiver side. singleSTART means that data can encode
+    // As one packet, do not need any more encoding
+    if (sizeofGivenBuffer == 1)
+      givenBuffer[index][subIndex + 2] = (char)singleStartIdle;
+    else if (index == sizeofGivenBuffer - 1)
+      givenBuffer[index][subIndex + 2] = (char)multiEndIdle;
+    else
+      givenBuffer[index][subIndex + 2] = (char)multiStartIdle;
+
     givenBuffer[index][0] = protocolDelimiters[0];
-
-    for (unsigned short subIndex = 0;; subIndex++) {
-
-      if (data[(index * DIVISOR_NUMBER) + subIndex] == '\0' || subIndex == DIVISOR_NUMBER) {
-
-        givenBuffer[index][subIndex + 1] = protocolDelimiters[1];
-
-        // IMPORTANT NOTICE: At the here, We have two status for encoding data(s)
-        // If you set the penultimate char as multiSTART, this means data is still available
-        // For encoding. But if you set this var as multiEND, this means encoding is over
-        // We are making this for receiver side. singleSTART means that data can encode
-        // As one packet, do not need any more encoding
-        if (givenBufferSize == 1)
-          givenBuffer[index][subIndex + 2] = (char)singleStartIdle;
-        else if (index == givenBufferSize - 1)
-          givenBuffer[index][subIndex + 2] = (char)multiEndIdle;
-        else
-          givenBuffer[index][subIndex + 2] = (char)multiStartIdle;
-
-        givenBuffer[index][subIndex + 3] = protocolDelimiters[2];
-        givenBuffer[index][subIndex + 4] = '\0';
-
-        break;
-      }
-
-      givenBuffer[index][subIndex + 1] = data[(index * DIVISOR_NUMBER) + subIndex];
-    }
+    givenBuffer[index][subIndex + 1] = protocolDelimiters[1];
+    givenBuffer[index][subIndex + 3] = protocolDelimiters[2];
+    givenBuffer[index][subIndex + 4] = '\0';
   }
 
   // Do not forget to end-of-line char to tail of 2D array
-  givenBuffer[givenBufferSize] = '\0';
+  givenBuffer[sizeofGivenBuffer] = '\0';
 
   // If everything goes well, we will arrive here and return true
   return true;
@@ -325,7 +320,7 @@ bool encodeData(char data[]) {
 
 bool isNumeric(unsigned short sizeofData, char data[]) {
 
-  if (data == NULL)
+  if (sizeofData == 0 || data == NULL)
     return false;
 
   for (unsigned short index = 0; index < sizeofData; index++)
@@ -337,7 +332,7 @@ bool isNumeric(unsigned short sizeofData, char data[]) {
 
 bool isAlphanumeric(unsigned short sizeofData, char data[]) {
 
-  if (data == NULL)
+  if (sizeofData == 0 || data == NULL)
     return false;
 
   // Check function ID, type is alphanumeric
