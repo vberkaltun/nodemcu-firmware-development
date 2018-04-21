@@ -94,13 +94,13 @@ void Serializer::clearDecodedList(bool isAllData) {
 
         free(decodedList.resultData);
         decodedList.resultData = NULL;
+        decodedList.sizeofResultData = 0;
     }
 
     // -----
 
     decodedList.sizeofDelimiter = 0;
     decodedList.sizeofGivenData = 0;
-    decodedList.sizeofResultData = 0;
 }
 
 void Serializer::clearEncodedList(bool isAllData) {
@@ -124,12 +124,12 @@ void Serializer::clearEncodedList(bool isAllData) {
     if (isAllData) {
         free(encodedList.resultData);
         encodedList.resultData = NULL;
+        encodedList.sizeofResultData = 0;
     }
 
     // -----
 
     encodedList.sizeofDelimiter = 0;
-    encodedList.sizeofResultData = 0;
     encodedList.sizeofGivenData = 0;
 }
 
