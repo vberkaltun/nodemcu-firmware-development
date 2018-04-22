@@ -88,9 +88,9 @@ void receiveEvent(unsigned short sizeofData) {
 
 void requestEvent() {
 
-  // IMPORTANT NOTICE: On the worst case, we are sending empty protocol 
-  // Data(s) this is the best way of worst case because the receiver device 
-  // Can always Decode this data and when we send "not filled" protocol 
+  // IMPORTANT NOTICE: On the worst case, we are sending empty protocol
+  // Data(s) this is the best way of worst case because the receiver device
+  // Can always Decode this data and when we send "not filled" protocol
   // Data(s), this means we are sending empty data(s)
   if (indexofGivenBuffer >= sizeofGivenBuffer)
     Wire.write(protocolDelimiters);
@@ -317,7 +317,7 @@ void callReceivedFunction(unsigned short indexofFunction, unsigned short sizeofD
   for (char index = 0; index < sizeofGivenBuffer; index++)
     free(givenBuffer[index]);
 
-  // After sub free up, free up top level pointer
+  // After free up top level pointer
   free(givenBuffer);
   givenBuffer = NULL;
   sizeofGivenBuffer = 0;
