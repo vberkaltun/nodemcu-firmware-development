@@ -7,7 +7,7 @@
 // As you can see, this protocol delimiter was declared in this scope
 // That's mean, all function will use this delimiter constant on
 // Communication between two or more devices
-#define DEVICE_BRAND "Broadcom_Inc."
+#define DEVICE_BRAND "Broadcom_Incorporated"
 #define DEVICE_MODEL "BCM_43142"
 #define DEVICE_VERSION "VER_1.0.0"
 
@@ -59,61 +59,43 @@ void setup() {
 
   // Initialize communication on Wire protocol
   Wire.begin(EEPROM.read(EEPROM_ADDRESS));
-
-  getVendors();
-  getFunctionList();
 }
 
 void loop() {
 }
 
-void receiveEvent() {
+void receiveEvent(unsigned short sizeofData) {
 
-  // Declare a new variable about given size
-  char *newReceivedBuffer;
+  // Declare variables about given size
+  char *newReceivedBuffer = (char *) malloc(sizeof (char) * (sizeofData + 1));
   unsigned short indexofNewReceivedBuffer = 0;
 
   // Loop through all but the last
-  while (Wire.available()) {
-
-    // receive byte as a character
-    char data = Wire.read();
-
-    // Malloc and realloc a sentence,  a list of words
-    if (newReceivedBuffer == NULL)
-      newReceivedBuffer = (char *) malloc(sizeof (char) * (++indexofNewReceivedBuffer + 1));
-    else
-      newReceivedBuffer = (char *) realloc(newReceivedBuffer, sizeof (char) * (++indexofNewReceivedBuffer + 1));
-
-    newReceivedBuffer[indexofNewReceivedBuffer - 1] = data;
-    newReceivedBuffer[indexofNewReceivedBuffer ] = '\0';
-
-    // We found singleStartIdle character, break it
-    if (newReceivedBuffer[indexofNewReceivedBuffer - 1] == (char)protocolDelimiters[2])
-      break;
-  }
+  while (Wire.available())
+    newReceivedBuffer[indexofNewReceivedBuffer++] =  Wire.read();
+  newReceivedBuffer[sizeofData] = '\0';
 
   // -----
 
   if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
     unknownEvent(indexofNewReceivedBuffer, newReceivedBuffer);
 
+  // TEMPORARILY, will be delete on release
+  Serial.println(freeMemory());
+
   free(newReceivedBuffer);
 }
 
 void requestEvent() {
 
-  // Fetch first stored data on givenList
-  char *subGivenData = popGivenBuffer();
-
-  if (subGivenData != NULL)
-    Wire.write(subGivenData);
-  else {
-
-    // When given data is NULL, add an value as NULL and write it
-    encodeData(strlen(nullIdle), nullIdle);
-    Wire.write(popGivenBuffer());
-  }
+  // IMPORTANT NOTICE: On the worst case, we are sending empty protocol 
+  // Data(s) this is the best way of worst case because the receiver device 
+  // Can always Decode this data and when we send "not filled" protocol 
+  // Data(s), this means we are sending empty data(s)
+  if (indexofGivenBuffer >= sizeofGivenBuffer)
+    Wire.write(protocolDelimiters);
+  else
+    Wire.write(givenBuffer[indexofGivenBuffer++]);
 }
 
 void unknownEvent(unsigned short sizeofData, char data[]) {
@@ -124,13 +106,18 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
   Serial.print(">[");
   Serial.print(sizeofData);
   Serial.println("] data received.");
+
+  // At the end, free up out-of-date buffer data
+  free(receivedBuffer);
+  receivedBuffer = NULL;
+  sizeofReceivedBuffer = 0;
 }
 
 void executeEvent(unsigned short sizeofData, char data[]) {
 
   // Store index of found function
   char foundIndex = 0;
-  bool foundFlag = true;
+  bool foundFlag = false;
 
   // Decode given data and store it
   char **insideData = Serialization.decode(sizeofDataDelimiters, dataDelimiters, sizeofData, data);
@@ -147,13 +134,11 @@ void executeEvent(unsigned short sizeofData, char data[]) {
 
     // Calculate registered function length at the given index
     unsigned short sizeofInternalFunction = strlen(functionList[index]);
-
-    // Calculate registered function length at the given index
     unsigned short sizeofExternalFunction = strlen(insideData[0]);
 
     // Data size check
     if (sizeofInternalFunction != sizeofExternalFunction)
-      break;
+      continue;
 
     // -----
 
@@ -177,37 +162,14 @@ void executeEvent(unsigned short sizeofData, char data[]) {
 
   // In the worst case, we can not find a function and found index is -1
   if (foundFlag)
-    callReceivedFunction(foundIndex, insideData[1]);
+    callReceivedFunction(foundIndex, strlen(insideData[1]), insideData[1]);
   else
     unknownEvent(sizeofData, data);
-}
 
-void callReceivedFunction(unsigned short index, char data[]) {
-
-  Serial.println(data);
-}
-
-char* popGivenBuffer() {
-
-  if (givenBuffer == NULL)
-    return NULL;
-
-  // When we arrived the last item of given data, clear all data
-  if (indexofGivenBuffer >= sizeofGivenBuffer) {
-
-    // Clearn code on 2D array
-    for (unsigned short index = 0; index < sizeofGivenBuffer; index++)
-      free(givenBuffer[index]);
-
-    free(givenBuffer);
-    givenBuffer = NULL;
-    sizeofGivenBuffer = 0;
-    indexofGivenBuffer = 0;
-
-    return NULL;
-  }
-
-  return givenBuffer[indexofGivenBuffer++];
+  // At the end, free up out-of-date buffer data
+  free(receivedBuffer);
+  receivedBuffer = NULL;
+  sizeofReceivedBuffer = 0;
 }
 
 bool decodeData(unsigned short sizeofData, char data[]) {
@@ -229,7 +191,7 @@ bool decodeData(unsigned short sizeofData, char data[]) {
 
   // -----
 
-  switch (newReceivedBuffer[1][0] ) {
+  switch (newReceivedBuffer[1][0]) {
     case singleStartIdle:
     case multiStartIdle:
     case multiEndIdle:
@@ -254,14 +216,8 @@ bool decodeData(unsigned short sizeofData, char data[]) {
   // -----
 
   // Go to next step, decoding inside data
-  if (newReceivedBuffer[1][0] == (char)singleStartIdle || newReceivedBuffer[1][0] == (char)multiEndIdle) {
+  if (newReceivedBuffer[1][0] == (char)singleStartIdle || newReceivedBuffer[1][0] == (char)multiEndIdle)
     executeEvent(sizeofReceivedBuffer, receivedBuffer);
-
-    // At the end, free up out-of-date buffer data
-    free(receivedBuffer);
-    receivedBuffer = NULL;
-    sizeofReceivedBuffer = 0;
-  }
 
   // If everything goes well, we will arrive here and return true
   return true;
@@ -273,8 +229,8 @@ bool encodeData(unsigned short sizeofData, char data[]) {
     return false;
 
   // Second, calculete size of data and modulus
-  unsigned short modulusofGivenBuffer = (strlen(data) % DIVISOR_NUMBER);
-  sizeofGivenBuffer = (strlen(data) / DIVISOR_NUMBER);
+  unsigned short modulusofGivenBuffer = (sizeofData % DIVISOR_NUMBER);
+  sizeofGivenBuffer = (sizeofData / DIVISOR_NUMBER);
 
   // Add modulos of data, if possible
   if (modulusofGivenBuffer > 0)
@@ -296,7 +252,7 @@ bool encodeData(unsigned short sizeofData, char data[]) {
     unsigned short upperBound = (index == sizeofGivenBuffer - 1 ? modulusofGivenBuffer : DIVISOR_NUMBER);
 
     for (subIndex = 0; subIndex < upperBound; subIndex++)
-      givenBuffer[index][subIndex + 1] = data[(index * upperBound) + subIndex];
+      givenBuffer[index][subIndex + 1] = data[(index * DIVISOR_NUMBER) + subIndex];
 
     // IMPORTANT NOTICE: At the here, We have two status for encoding data(s)
     // If you set the penultimate char as multiSTART, this means data is still available
@@ -348,22 +304,56 @@ bool isAlphanumeric(unsigned short sizeofData, char data[]) {
   return true;
 }
 
+void callReceivedFunction(unsigned short indexofFunction, unsigned short sizeofData, char data[]) {
+
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  for (char index = 0; index < sizeofGivenBuffer; index++)
+    free(givenBuffer[index]);
+
+  // After sub free up, free up top level pointer
+  free(givenBuffer);
+  givenBuffer = NULL;
+  sizeofGivenBuffer = 0;
+  indexofGivenBuffer = 0;
+
+  switch (indexofFunction) {
+    case 0:
+      getVendors(sizeofData, data);
+      break;
+    case 1:
+      getFunctionList(sizeofData, data);
+      break;
+    default:
+      break;
+  }
+}
+
 // ------------------------------------------------------------
 // ----- INTERNAL FUNC(S) -------------------------------------
 // ------------------------------------------------------------
 
-void getVendors() {
+void getVendors(unsigned short sizeofData, char data[]) {
 
-  char inlineDelimiter[] = {sectionIdle, sectionIdle};
-  char* inlineData[] = {DEVICE_BRAND, DEVICE_MODEL, DEVICE_VERSION};
-  char* outputData = Serialization.encode(2, inlineDelimiter, 3, inlineData);
+  // Notify users
+  Serial.print("Done! ");
+  Serial.print(__func__);
+  Serial.println(" function triggered.");
 
-  Serial.println(outputData);
+  char* deviceData[] = {DEVICE_BRAND, DEVICE_MODEL, DEVICE_VERSION};
+  char* result = Serialization.encode(2, "", 3, deviceData);
+  encodeData(strlen(result), result);
 }
 
-void getFunctionList() {
+void getFunctionList(unsigned short sizeofData, char data[]) {
 
-  char inlineDelimiter[] = {sectionIdle};
-  char* outputData = Serialization.encode(1, inlineDelimiter, sizeofFunctionList, functionList);
-  Serial.println(outputData);
+  // Notify users
+  Serial.print("Done! ");
+  Serial.print(__func__);
+  Serial.println(" function triggered.");
+
+  char *result = Serialization.encode(1, nullIdle, sizeofFunctionList, functionList);
+  encodeData(strlen(result), result);
 }
