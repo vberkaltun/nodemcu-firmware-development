@@ -94,8 +94,12 @@ void requestEvent() {
   // Data(s), this means we are sending empty data(s)
   if (indexofGivenBuffer >= sizeofGivenBuffer)
     Wire.write(protocolDelimiters);
-  else
-    Wire.write(givenBuffer[indexofGivenBuffer++]);
+  else {
+    if (sizeofGivenBuffer > 0)
+      Wire.write(givenBuffer[indexofGivenBuffer++]);
+    else
+      Wire.write(protocolDelimiters);
+  }
 }
 
 void unknownEvent(unsigned short sizeofData, char data[]) {
