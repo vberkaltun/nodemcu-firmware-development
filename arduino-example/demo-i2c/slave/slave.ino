@@ -20,16 +20,20 @@
 // We should split it. Then we can send our data to master
 #define DIVISOR_NUMBER 25
 
-// In sequence, delimiters is 0x18, 0x1B and 0x1C - 0x1D
-unsigned short sizeofProtocolDelimiters = 3;
-const char* protocolDelimiters = "";
+// Outside protocol delimiters
+#define PROTOCOL_DELIMITERS ""
+#define PROTOCOL_DELIMITERS_SIZE 3
 
-unsigned short sizeofDataDelimiters = 1;
-const char* dataDelimiters = "";
+// Inside protocol delimiters, we called it data delimiters
+#define DATA_DELIMITER ""
+#define DATA_DELIMITER_SIZE 1
 
-const char singleStartIdle = 0x15;
-const char multiStartIdle = 0x16;
-const char multiEndIdle = 0x17;
+// Start and end type of protocol delimiters
+#define IDLE_SINGLE_START 0x15
+#define IDLE_MULTI_START 0x16
+#define IDLE_MULTI_END 0x17
+
+// -----
 
 // Do not change default value of this variable
 char* receivedBuffer = NULL;
