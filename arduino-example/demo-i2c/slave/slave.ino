@@ -110,12 +110,12 @@ void requestEvent() {
   // Can always Decode this data and when we send "not filled" protocol
   // Data(s), this means we are sending empty data(s)
   if (indexofGivenBuffer >= sizeofGivenBuffer)
-    Wire.write(protocolDelimiters);
+    Wire.write(PROTOCOL_DELIMITERS);
   else {
     if (sizeofGivenBuffer > 0)
       Wire.write(givenBuffer[indexofGivenBuffer++]);
     else
-      Wire.write(protocolDelimiters);
+      Wire.write(PROTOCOL_DELIMITERS);
   }
 }
 
@@ -141,7 +141,7 @@ void executeEvent(unsigned short sizeofData, char data[]) {
   bool foundFlag = false;
 
   // Decode given data and store it
-  char **insideData = Serialization.decode(sizeofDataDelimiters, dataDelimiters, sizeofData, data);
+  char **insideData = Serialization.decode(DATA_DELIMITER_SIZE, DATA_DELIMITER, sizeofData, data);
 
   for (char index = 0; index < sizeofFunctionList; index++) {
 
@@ -199,7 +199,7 @@ bool decodeData(unsigned short sizeofData, char data[]) {
     return false;
 
   // Decode given data, Calculate up-of-date and needed buffer size
-  char **newReceivedBuffer = Serialization.decode(sizeofProtocolDelimiters, protocolDelimiters, sizeofData, data);
+  char **newReceivedBuffer = Serialization.decode(PROTOCOL_DELIMITERS_SIZE, PROTOCOL_DELIMITERS, sizeofData, data);
   unsigned short sizeofNewReceivedBuffer = strlen(newReceivedBuffer[0]);
 
   // Null operator check
@@ -213,9 +213,9 @@ bool decodeData(unsigned short sizeofData, char data[]) {
   // -----
 
   switch (newReceivedBuffer[1][0]) {
-    case singleStartIdle:
-    case multiStartIdle:
-    case multiEndIdle:
+    case IDLE_SINGLE_START:
+    case IDLE_MULTI_START:
+    case IDLE_MULTI_END:
       break;
     default:
       return false;
@@ -237,7 +237,7 @@ bool decodeData(unsigned short sizeofData, char data[]) {
   // -----
 
   // Go to next step, decoding inside data
-  if (newReceivedBuffer[1][0] == (char)singleStartIdle || newReceivedBuffer[1][0] == (char)multiEndIdle)
+  if (newReceivedBuffer[1][0] == (char)IDLE_SINGLE_START || newReceivedBuffer[1][0] == (char)IDLE_MULTI_END)
     executeEvent(sizeofReceivedBuffer, receivedBuffer);
 
   // If everything goes well, we will arrive here and return true
@@ -279,7 +279,7 @@ bool encodeData(unsigned short sizeofData, char data[]) {
 
   for (unsigned short index = 0; index < sizeofGivenBuffer; index++) {
 
-    givenBuffer[index] = (char *) malloc(sizeof (char) * (DIVISOR_NUMBER + sizeofProtocolDelimiters + 1));
+    givenBuffer[index] = (char *) malloc(sizeof (char) * (DIVISOR_NUMBER + PROTOCOL_DELIMITERS_SIZE + 1));
 
     unsigned short subIndex;
     unsigned short upperBound = (index == sizeofGivenBuffer - 1 ? modulusofGivenBuffer : DIVISOR_NUMBER);
@@ -293,15 +293,15 @@ bool encodeData(unsigned short sizeofData, char data[]) {
     // We are making this for receiver side. singleSTART means that data can encode
     // As one packet, do not need any more encoding
     if (sizeofGivenBuffer == 1)
-      givenBuffer[index][subIndex + 2] = (char)singleStartIdle;
+      givenBuffer[index][subIndex + 2] = (char)IDLE_SINGLE_START;
     else if (index == sizeofGivenBuffer - 1)
-      givenBuffer[index][subIndex + 2] = (char)multiEndIdle;
+      givenBuffer[index][subIndex + 2] = (char)IDLE_MULTI_END;
     else
-      givenBuffer[index][subIndex + 2] = (char)multiStartIdle;
+      givenBuffer[index][subIndex + 2] = (char)IDLE_MULTI_START;
 
-    givenBuffer[index][0] = protocolDelimiters[0];
-    givenBuffer[index][subIndex + 1] = protocolDelimiters[1];
-    givenBuffer[index][subIndex + 3] = protocolDelimiters[2];
+    givenBuffer[index][0] = PROTOCOL_DELIMITERS[0];
+    givenBuffer[index][subIndex + 1] = PROTOCOL_DELIMITERS[1];
+    givenBuffer[index][subIndex + 3] = PROTOCOL_DELIMITERS[2];
     givenBuffer[index][subIndex + 4] = '\0';
   }
 
