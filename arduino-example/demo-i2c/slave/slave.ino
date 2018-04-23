@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include <Serializer.h>
 #include <EEPROM.h>
-#include <MemoryFree.h>
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
@@ -19,6 +18,12 @@
 // Each transmission. Therefore, if there is more data than 32 bits
 // We should split it. Then we can send our data to master
 #define DIVISOR_NUMBER 25
+
+// IMPORTANT NOTICE: Based on buffer size of I2C bus and maximum
+// Range of your device. At the here, we declared it with 32 bit
+// Because of buffer size of Arduino but if you have a bigger buffer
+// Than 32 bit. you can upgrade and speed up your buffers
+#define BUFFER_SIZE 32
 
 // Outside protocol delimiters
 #define PROTOCOL_DELIMITERS ""
@@ -73,9 +78,6 @@ void setup() {
 
   // Initialize communication on Wire protocol
   Wire.begin(WIRE_BEGIN);
-
-  // TEMPORARILY, will be delete on release
-  Serial.println(freeMemory());
 }
 
 void loop() {
@@ -87,18 +89,20 @@ void receiveEvent(unsigned short sizeofData) {
   char *newReceivedBuffer = (char *) malloc(sizeof (char) * (sizeofData + 1));
   unsigned short indexofNewReceivedBuffer = 0;
 
-  // Loop through all but the last
-  while (Wire.available())
-    newReceivedBuffer[indexofNewReceivedBuffer++] =  Wire.read();
-  newReceivedBuffer[sizeofData] = '\0';
+  while (Wire.available()) {
+    char bufferValue = Wire.read();
+    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)bufferValue;
 
+    if (bufferValue == (char)PROTOCOL_DELIMITERS[2]) {
+      newReceivedBuffer[indexofNewReceivedBuffer] = '\0';
+      break;
+    }
+  }
+  
   // -----
 
   if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
     unknownEvent(indexofNewReceivedBuffer, newReceivedBuffer);
-
-  // TEMPORARILY, will be delete on release
-  Serial.println(freeMemory());
 
   free(newReceivedBuffer);
 }
