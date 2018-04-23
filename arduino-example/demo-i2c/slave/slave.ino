@@ -226,6 +226,21 @@ bool decodeData(unsigned short sizeofData, char data[]) {
 
 bool encodeData(unsigned short sizeofData, char data[]) {
 
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  for (char index = 0; index < sizeofGivenBuffer; index++)
+    free(givenBuffer[index]);
+
+  // After free up top level pointer
+  free(givenBuffer);
+  givenBuffer = NULL;
+  sizeofGivenBuffer = 0;
+  indexofGivenBuffer = 0;
+
+  // -----
+
   if (sizeofData == 0 || data == NULL)
     return false;
 
