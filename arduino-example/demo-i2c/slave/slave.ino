@@ -64,56 +64,61 @@ char* listenList[] = {"100",
                       "100"
                      };
 
-bool executeFlag = false;
-
 // TEMPORARILY, will be delete on release
 #define WIRE_BEGIN 0x30
 
 void setup() {
 
+  // Register events, onReceive and onRequest
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
+
   // Initialize communication on serial protocol
   Serial.begin(9600);
 
   // Initialize communication on Wire protocol
-  Wire.begin(D1, D2);
-
-  char* delimiterBuffer = "";
-  char* resultBuffer[] = {functionList[1], "NULL"};
-  char* result = Serialization.encode(1, delimiterBuffer, 2, resultBuffer);
-  encodeData(strlen(result), result);
+  Wire.begin(WIRE_BEGIN);
 }
 
 void loop() {
+}
 
-  if (!executeFlag) {
-    while (indexofGivenBuffer < sizeofGivenBuffer) {
-      Wire.beginTransmission(WIRE_BEGIN);
-      Wire.write(givenBuffer[indexofGivenBuffer++]);
-      Wire.endTransmission();
-    }
-    executeFlag = true;
-  }
+void receiveEvent(unsigned short sizeofData) {
 
-  delay(500);
-
-  unsigned short sizeofData = BUFFER_SIZE;
+  // Declare variables about given size
+  char newReceivedBuffer[BUFFER_SIZE];
   unsigned short indexofNewReceivedBuffer = 0;
-  char newReceivedBuffer[sizeofData];
-
-  Wire.requestFrom(WIRE_BEGIN, sizeofData);
 
   while (Wire.available()) {
-    char c = Wire.read();
-    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)c;
-    if (c == (char)PROTOCOL_DELIMITERS[2]) {
+    char bufferValue = Wire.read();
+    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)bufferValue;
+
+    if (bufferValue == (char)PROTOCOL_DELIMITERS[2]) {
       newReceivedBuffer[indexofNewReceivedBuffer] = '\0';
       break;
     }
   }
 
-  // TEMPORARILY, will be delete on release
-  Serial.println(newReceivedBuffer);
-  delay(500);
+  // -----
+
+  if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
+    unknownEvent(indexofNewReceivedBuffer, newReceivedBuffer);
+}
+
+void requestEvent() {
+
+  // IMPORTANT NOTICE: On the worst case, we are sending empty protocol
+  // Data(s) this is the best way of worst case because the receiver device
+  // Can always Decode this data and when we send "not filled" protocol
+  // Data(s), this means we are sending empty data(s)
+  if (indexofGivenBuffer >= sizeofGivenBuffer)
+    Wire.write(PROTOCOL_DELIMITERS);
+  else {
+    if (sizeofGivenBuffer > 0)
+      Wire.write(givenBuffer[indexofGivenBuffer++]);
+    else
+      Wire.write(PROTOCOL_DELIMITERS);
+  }
 }
 
 void unknownEvent(unsigned short sizeofData, char data[]) {
