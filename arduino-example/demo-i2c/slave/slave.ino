@@ -27,9 +27,6 @@ const char* protocolDelimiters = "";
 unsigned short sizeofDataDelimiters = 1;
 const char* dataDelimiters = "";
 
-const char nullIdle = 0x1E;
-const char sectionIdle = 0x1F;
-
 const char singleStartIdle = 0x15;
 const char multiStartIdle = 0x16;
 const char multiEndIdle = 0x17;
@@ -240,11 +237,8 @@ bool encodeData(unsigned short sizeofData, char data[]) {
   if (modulusofGivenBuffer > 0)
     sizeofGivenBuffer++;
 
-  // Malloc and realloc a sentence,  a list of words
-  if (givenBuffer == NULL)
-    givenBuffer = (char **) malloc(sizeof (char *) * (sizeofGivenBuffer + 1));
-  else
-    givenBuffer = (char **) realloc(givenBuffer, sizeof (char *) * (sizeofGivenBuffer + 1));
+  // We do not need realloc code because of the top of encoding function
+  givenBuffer = (char **) malloc(sizeof (char *) * (sizeofGivenBuffer + 1));
 
   // -----
 
