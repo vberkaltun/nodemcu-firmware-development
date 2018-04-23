@@ -31,11 +31,6 @@ const char singleStartIdle = 0x15;
 const char multiStartIdle = 0x16;
 const char multiEndIdle = 0x17;
 
-const char sizeofFunctionList = 2;
-const char* functionList[] = {"getVendors",
-                              "getFunctionList"
-                             };
-
 // Do not change default value of this variable
 char* receivedBuffer = NULL;
 unsigned short sizeofReceivedBuffer = 0;
@@ -44,6 +39,24 @@ unsigned short sizeofReceivedBuffer = 0;
 char** givenBuffer = NULL;
 unsigned short sizeofGivenBuffer = 0;
 unsigned short indexofGivenBuffer = 0;
+
+const char sizeofFunctionList = 3;
+const char* functionList[] = {"getVendors",
+                              "getFunctionList"
+                             };
+
+const char sizeofReturnList = sizeofFunctionList;
+const char* returnList[] = {"1",
+                            "1"
+                           };
+
+const char sizeofListenList = sizeofFunctionList;
+const char* listenList[] = {"100",
+                            "100"
+                           };
+
+// TEMPORARILY, will be delete on release
+#define WIRE_BEGIN 0x30
 
 void setup() {
 
@@ -55,7 +68,10 @@ void setup() {
   Serial.begin(9600);
 
   // Initialize communication on Wire protocol
-  Wire.begin(EEPROM.read(EEPROM_ADDRESS));
+  Wire.begin(WIRE_BEGIN);
+
+  // TEMPORARILY, will be delete on release
+  Serial.println(freeMemory());
 }
 
 void loop() {
@@ -342,8 +358,9 @@ void getVendors(unsigned short sizeofData, char data[]) {
   Serial.print(__func__);
   Serial.println(" function triggered.");
 
-  char* deviceData[] = {DEVICE_BRAND, DEVICE_MODEL, DEVICE_VERSION};
-  char* result = Serialization.encode(2, "", 3, deviceData);
+  char* delimiterBuffer = "";
+  char* resultBuffer[] = {DEVICE_BRAND, DEVICE_MODEL, DEVICE_VERSION};
+  char* result = Serialization.encode(2, delimiterBuffer, 3, resultBuffer);
   encodeData(strlen(result), result);
 }
 
@@ -354,6 +371,14 @@ void getFunctionList(unsigned short sizeofData, char data[]) {
   Serial.print(__func__);
   Serial.println(" function triggered.");
 
-  char *result = Serialization.encode(1, nullIdle, sizeofFunctionList, functionList);
+  char* delimiterBuffer = "";
+  char* resultBuffer[] = {functionList[0],
+                          returnList[0],
+                          listenList[0],
+                          functionList[1],
+                          returnList[1],
+                          listenList[1]
+                         };
+  char* result = Serialization.encode(5, delimiterBuffer, 6, resultBuffer);
   encodeData(strlen(result), result);
 }
