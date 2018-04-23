@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include <Serializer.h>
 #include <EEPROM.h>
-#include <MemoryFree.h>
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
@@ -20,6 +19,12 @@
 // We should split it. Then we can send our data to master
 #define DIVISOR_NUMBER 25
 
+// IMPORTANT NOTICE: Based on buffer size of I2C bus and maximum
+// Range of your device. At the here, we declared it with 32 bit
+// Because of buffer size of Arduino but if you have a bigger buffer
+// Than 32 bit. you can upgrade and speed up your buffers
+#define BUFFER_SIZE 32
+
 // Outside protocol delimiters
 #define PROTOCOL_DELIMITERS ""
 #define PROTOCOL_DELIMITERS_SIZE 3
@@ -36,87 +41,79 @@
 // -----
 
 // Do not change default value of this variable
-char* receivedBuffer = NULL;
+char receivedBuffer[BUFFER_SIZE * BUFFER_SIZE];
 unsigned short sizeofReceivedBuffer = 0;
 
 // Do not change default value of this variable
-char** givenBuffer = NULL;
+char givenBuffer[BUFFER_SIZE][BUFFER_SIZE];
 unsigned short sizeofGivenBuffer = 0;
 unsigned short indexofGivenBuffer = 0;
 
-const char sizeofFunctionList = 3;
-const char* functionList[] = {"getVendors",
-                              "getFunctionList"
-                             };
+char sizeofFunctionList = 3;
+char* functionList[] = {"getVendors",
+                        "getFunctionList"
+                       };
 
-const char sizeofReturnList = sizeofFunctionList;
-const char* returnList[] = {"1",
-                            "1"
-                           };
+char sizeofReturnList = sizeofFunctionList;
+char* returnList[] = {"1",
+                      "1"
+                     };
 
-const char sizeofListenList = sizeofFunctionList;
-const char* listenList[] = {"100",
-                            "100"
-                           };
+char sizeofListenList = sizeofFunctionList;
+char* listenList[] = {"100",
+                      "100"
+                     };
+
+bool executeFlag = false;
 
 // TEMPORARILY, will be delete on release
 #define WIRE_BEGIN 0x30
 
 void setup() {
 
-  // Register events, onReceive and onRequest
-  Wire.onReceive(receiveEvent);
-  Wire.onRequest(requestEvent);
-
   // Initialize communication on serial protocol
   Serial.begin(9600);
 
   // Initialize communication on Wire protocol
-  Wire.begin(WIRE_BEGIN);
+  Wire.begin(D1, D2);
 
-  // TEMPORARILY, will be delete on release
-  Serial.println(freeMemory());
+  char* delimiterBuffer = "";
+  char* resultBuffer[] = {functionList[1], "NULL"};
+  char* result = Serialization.encode(1, delimiterBuffer, 2, resultBuffer);
+  encodeData(strlen(result), result);
 }
 
 void loop() {
-}
 
-void receiveEvent(unsigned short sizeofData) {
+  if (!executeFlag) {
+    while (indexofGivenBuffer < sizeofGivenBuffer) {
+      Wire.beginTransmission(WIRE_BEGIN);
+      Wire.write(givenBuffer[indexofGivenBuffer++]);
+      Wire.endTransmission();
+    }
+    executeFlag = true;
+  }
 
-  // Declare variables about given size
-  char *newReceivedBuffer = (char *) malloc(sizeof (char) * (sizeofData + 1));
+  delay(500);
+
+  unsigned short sizeofData = BUFFER_SIZE;
   unsigned short indexofNewReceivedBuffer = 0;
+  char newReceivedBuffer[sizeofData];
 
-  // Loop through all but the last
-  while (Wire.available())
-    newReceivedBuffer[indexofNewReceivedBuffer++] =  Wire.read();
-  newReceivedBuffer[sizeofData] = '\0';
+  Wire.requestFrom(WIRE_BEGIN, sizeofData);
 
-  // -----
-
-  if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
-    unknownEvent(indexofNewReceivedBuffer, newReceivedBuffer);
+  while (Wire.available()) {
+    char c = Wire.read();
+    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)c;
+    if (c == (char)PROTOCOL_DELIMITERS[2]) {
+      newReceivedBuffer[indexofNewReceivedBuffer] = '\0';
+      break;
+    }
+  }
 
   // TEMPORARILY, will be delete on release
-  Serial.println(freeMemory());
-
-  free(newReceivedBuffer);
-}
-
-void requestEvent() {
-
-  // IMPORTANT NOTICE: On the worst case, we are sending empty protocol
-  // Data(s) this is the best way of worst case because the receiver device
-  // Can always Decode this data and when we send "not filled" protocol
-  // Data(s), this means we are sending empty data(s)
-  if (indexofGivenBuffer >= sizeofGivenBuffer)
-    Wire.write(PROTOCOL_DELIMITERS);
-  else {
-    if (sizeofGivenBuffer > 0)
-      Wire.write(givenBuffer[indexofGivenBuffer++]);
-    else
-      Wire.write(PROTOCOL_DELIMITERS);
-  }
+  Serial.println(newReceivedBuffer);
+  delay(500);
 }
 
 void unknownEvent(unsigned short sizeofData, char data[]) {
@@ -129,8 +126,7 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
   Serial.println("] data received.");
 
   // At the end, free up out-of-date buffer data
-  free(receivedBuffer);
-  receivedBuffer = NULL;
+  receivedBuffer[0] = '\0';
   sizeofReceivedBuffer = 0;
 }
 
@@ -188,8 +184,7 @@ void executeEvent(unsigned short sizeofData, char data[]) {
     unknownEvent(sizeofData, data);
 
   // At the end, free up out-of-date buffer data
-  free(receivedBuffer);
-  receivedBuffer = NULL;
+  receivedBuffer[0] = '\0';
   sizeofReceivedBuffer = 0;
 }
 
@@ -221,12 +216,6 @@ bool decodeData(unsigned short sizeofData, char data[]) {
       return false;
   }
 
-  // Malloc and realloc a sentence,  a list of words
-  if (receivedBuffer == NULL)
-    receivedBuffer = (char *) malloc(sizeof (char) * (sizeofReceivedBuffer + sizeofNewReceivedBuffer + 1));
-  else
-    receivedBuffer = (char *) realloc(receivedBuffer, sizeof (char) * (sizeofReceivedBuffer + sizeofNewReceivedBuffer + 1));
-
   for (unsigned short index = 0; index < sizeofNewReceivedBuffer; index++)
     receivedBuffer[sizeofReceivedBuffer + index] = newReceivedBuffer[0][index];
 
@@ -251,11 +240,8 @@ bool encodeData(unsigned short sizeofData, char data[]) {
   // Last stored data to master device. And additional, data removing will refresh
   // the size of data in memory. This is most important thing ...
   for (char index = 0; index < sizeofGivenBuffer; index++)
-    free(givenBuffer[index]);
+    givenBuffer[index][0] = '\0';
 
-  // After free up top level pointer
-  free(givenBuffer);
-  givenBuffer = NULL;
   sizeofGivenBuffer = 0;
   indexofGivenBuffer = 0;
 
@@ -272,14 +258,9 @@ bool encodeData(unsigned short sizeofData, char data[]) {
   if (modulusofGivenBuffer > 0)
     sizeofGivenBuffer++;
 
-  // We do not need realloc code because of the top of encoding function
-  givenBuffer = (char **) malloc(sizeof (char *) * (sizeofGivenBuffer + 1));
-
   // -----
 
   for (unsigned short index = 0; index < sizeofGivenBuffer; index++) {
-
-    givenBuffer[index] = (char *) malloc(sizeof (char) * (DIVISOR_NUMBER + PROTOCOL_DELIMITERS_SIZE + 1));
 
     unsigned short subIndex;
     unsigned short upperBound = (index == sizeofGivenBuffer - 1 ? modulusofGivenBuffer : DIVISOR_NUMBER);
@@ -304,9 +285,6 @@ bool encodeData(unsigned short sizeofData, char data[]) {
     givenBuffer[index][subIndex + 3] = PROTOCOL_DELIMITERS[2];
     givenBuffer[index][subIndex + 4] = '\0';
   }
-
-  // Do not forget to end-of-line char to tail of 2D array
-  givenBuffer[sizeofGivenBuffer] = '\0';
 
   // If everything goes well, we will arrive here and return true
   return true;
