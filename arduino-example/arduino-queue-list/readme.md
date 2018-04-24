@@ -1,4 +1,4 @@
-**[Extended Version of Core: [Linked list library for Arduino](https://github.com/SloCompTech/QList)**
+**Extended Version of Core: [Linked list library for Arduino](https://github.com/SloCompTech/QList)**
 **For more info please visit it ...**
 # QueueList
 
