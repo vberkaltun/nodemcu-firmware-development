@@ -1,4 +1,4 @@
-# QList
+# QueueList
 [![Build Status](https://travis-ci.org/SloCompTech/QList.svg?branch=master)](https://travis-ci.org/SloCompTech/QList) 
 [![Packagist](https://img.shields.io/packagist/l/doctrine/orm.svg)]()  
 
@@ -8,24 +8,24 @@ Purpose of this library is to enable programmers to create lists of things
 
 Before we can start using library, we need to include library to our sketch
 ``` C++
-  #include <QList.h>
+  #include <QueueList.h>
 ```
 
 First, we create simple list object example for ints:
 ``` C++
-  QList<int> list;
+  QueueList<int> list;
 ```
 
 Then we can add items in list:
 ``` C++
-  list.push_front(item); // Push item at the front of the list
-  list.push_back(item); // Push item at the back of the list
+  list.pushFront(item); // Push item at the front of the list
+  list.pushBack(item); // Push item at the back of the list
 ```
 
 Items on the list can be removed:
 ``` C++
-  list.pop_front(); // Remove item at the front of the list
-  list.pop_back(); // Remove item at the back of the list
+  list.popFront(); // Remove item at the front of the list
+  list.popBack(); // Remove item at the back of the list
   /*
     Remove item at given position
     WARNING !
@@ -66,13 +66,13 @@ Values of items that are already in the list, can be changed:
 
 Size of list can be accessed with:
 ``` C++
-  int list_size = list.size();
-  int same_list_size = list.length();
+  int listSize = list.size();
+  int sameListSize = list.length();
 ```
 
 You can also search for items in list:
 ``` C++
-  int pos = list.indexOf(item);
+  int pos = list.indexof(item);
   if(pos < 0)
     Serial.println("Item not found");
 ```
