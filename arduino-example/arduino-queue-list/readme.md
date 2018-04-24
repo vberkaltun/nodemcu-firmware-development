@@ -1,6 +1,6 @@
+**[Extended Version of Core: [Linked list library for Arduino](https://github.com/SloCompTech/QList)**
+**For more info please visit it ...**
 # QueueList
-[![Build Status](https://travis-ci.org/SloCompTech/QList.svg?branch=master)](https://travis-ci.org/SloCompTech/QList) 
-[![Packagist](https://img.shields.io/packagist/l/doctrine/orm.svg)]()  
 
 Linked list library for Arduino
 
