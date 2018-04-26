@@ -6,7 +6,7 @@
 #define INTERVAL 1500
 
 void setup() {
-  Wire.begin();
+  Wire.begin(D1, D2);
   Serial.begin(9600);
   MasterScanner.setRange(INTERVAL, START_ADDRESS, STOP_ADDRESS);
   Serial.print("Scanning will begin from " + (String)MasterScanner.getStartAddress() +

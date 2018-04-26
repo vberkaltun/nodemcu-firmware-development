@@ -2,7 +2,7 @@
 #include <MasterScanner.h>
 
 void setup() {
-  Wire.begin();
+  Wire.begin(D1, D2);
   Serial.begin(9600);
   MasterScanner.onConnectedSlaves(connectedSlaves);
   MasterScanner.onDisconnectedSlaves(disconnectedSlaves);
