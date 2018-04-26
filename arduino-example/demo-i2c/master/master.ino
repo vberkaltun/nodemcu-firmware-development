@@ -1,0 +1,436 @@
+#include <Wire.h>
+#include <Serializer.h>
+#include <QueueList.h>
+
+// IMPORTANT NOTICE: These all constant is depending on your protocol
+// As you can see, this protocol delimiter was declared in this scope
+// That's mean, all function will use this delimiter constant on
+// Communication between two or more devices
+#define DEVICE_BRAND "Broadcom_Incorporated"
+#define DEVICE_MODEL "BCM_43142"
+#define DEVICE_VERSION "VER_1.0.0"
+
+// IMPORTANT NOTICE: Do not change this variable
+// Thus, 0x03 index was reserved for bus address of device
+#define EEPROM_ADDRESS 0x03
+
+// IMPORTANT NOTICE: On I2C bus, You can send up to 32 bits on
+// Each transmission. Therefore, if there is more data than 32 bits
+// We should split it. Then we can send our data to master
+#define DIVISOR_NUMBER 25
+
+// IMPORTANT NOTICE: Based on buffer size of I2C bus and maximum
+// Range of your device. At the here, we declared it with 32 bit
+// Because of buffer size of Arduino but if you have a bigger buffer
+// Than 32 bit. you can upgrade and speed up your buffers
+#define BUFFER_SIZE 32
+
+// IMPORTANT NOTICE: IMPORTANT NOTICE: If buffer size is not looking
+// Enough for you, you can extend or shrink your data with this variable.
+// Due to lack of resources on memory, we were setted it as 8 but if you
+// Have more memory on your device, bigger value can be compatible
+#define MINIMIZED_BUFFER_SIZE 8
+
+// Outside protocol delimiters
+#define PROTOCOL_DELIMITERS ""
+#define PROTOCOL_DELIMITERS_SIZE 3
+
+// Inside protocol delimiters, we called it data delimiters
+#define DATA_DELIMITER ""
+#define DATA_DELIMITER_SIZE 1
+
+// Start and end type of protocol delimiters
+#define IDLE_SINGLE_START 0x15
+#define IDLE_MULTI_START 0x16
+#define IDLE_MULTI_END 0x17
+
+// -----
+
+enum handshakeData {Unknown, Ready, Blocked};
+enum communicationData {Idle, Continue, End};
+
+struct vendorData {
+  char Brand[BUFFER_SIZE];
+  char Model[BUFFER_SIZE];
+  char Version[BUFFER_SIZE];
+};
+
+struct functionData {
+  char Name[BUFFER_SIZE];
+  bool Request = false;
+  unsigned short Interval = 0;
+};
+
+struct deviceData {
+  struct vendorData vendorList;
+  QueueList<functionData> functionList;
+  enum handshakeData handshake = Unknown;
+  char address = NULL;
+};
+
+QueueList<char> blackList;
+QueueList<char> registerList;
+QueueList<deviceData> deviceList;
+enum communicationData communicationFlag = Idle;
+
+// -----
+
+// Do not change default value of this variable
+char receivedBuffer[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
+unsigned short sizeofReceivedBuffer = 0;
+
+// Do not change default value of this variable
+char givenBuffer[MINIMIZED_BUFFER_SIZE][BUFFER_SIZE];
+unsigned short sizeofGivenBuffer = 0;
+unsigned short indexofGivenBuffer = 0;
+
+char sizeofFunctionList = 2;
+char *functionList[] = {"getVendors",
+                        "getFunctionList"
+                       };
+
+// TEMPORARILY, will be delete on release
+#define WIRE_BEGIN1 0x30
+#define WIRE_BEGIN2 0x32
+
+void setup() {
+
+  // Initialize communication on serial protocol
+  Serial.begin(9600);
+
+  // Initialize communication on Wire protocol
+  Wire.begin(D1, D2);
+
+  connectedSlaves();
+}
+
+void loop() {
+
+  // IMPORTANT NOTICE: Device registering is more priority than others
+  // Step, When new device(s) were connected to master device, firstly
+  // Register these device(s) to system, after continue what you do
+  if (registerList.size() != 0) {
+
+    // IMPORTANT NOTICE: This data(s) is defined for this if - loop stamenent
+    // When a new device is registered to master, we are fetching all vendor
+    // And function data at the here. When we are doing all of these also we
+    // Need temp variable
+    struct vendorData newVendorData;
+    struct functionData newFunctionData;
+
+    for (unsigned short index = 0; index < sizeofFunctionList; index++) {
+
+      char *encodeBuffer = generateDelimiterBuffer(DATA_DELIMITER, 1);
+      char *resultBuffer[] = {functionList[index], "NULL"};
+      char *result = Serialization.encode(1, encodeBuffer, 2, resultBuffer);
+      encodeData(strlen(result), result);
+
+      // Send all remainder data to newly registered slave
+      while (indexofGivenBuffer < sizeofGivenBuffer) {
+        Wire.beginTransmission(registerList[0]);
+        Wire.write(givenBuffer[indexofGivenBuffer++]);
+        Wire.endTransmission();
+
+        // Maybe not need, right?
+        delay(10);
+      }
+
+      // IMPORTANT NOTICE: Due to decoding of slave device, we need to Wait
+      // A little bit. Otherwise, Master device will request data From slave
+      // Device too early and slave cannot send it
+      delay(100);
+
+      // -----
+
+      // We will do this till decoding will return false
+      while (true) {
+
+        // More info was given at inside of this function
+        if (!requestNewDeviceData(registerList[0]))
+          break;
+      }
+
+      // More info was given at inside of this function
+      if (!fillNewDeviceData(registerList[0]))
+        break;
+
+      // At the end, free up out-of-date buffer data
+      receivedBuffer[0] = '\0';
+      sizeofReceivedBuffer = 0;
+    }
+
+    registerList.popFront();
+  }
+}
+
+void connectedSlaves() {
+
+  // Add new connected device to register list
+  registerList.pushFront(WIRE_BEGIN1);
+
+  // Add new connected device to register list
+  registerList.pushFront(WIRE_BEGIN2);
+}
+
+bool requestNewDeviceData(char address) {
+
+  unsigned short indexofNewReceivedBuffer = 0;
+  char newReceivedBuffer[BUFFER_SIZE];
+
+  // Request data from slave
+  Wire.requestFrom(address, BUFFER_SIZE);
+  while (Wire.available()) {
+
+    // Store new received data at the here
+    char currentBuffer = Wire.read();
+    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)currentBuffer;
+
+    // Don't forget to add end-of-line char to end
+    if (currentBuffer == (char)PROTOCOL_DELIMITERS[2]) {
+      newReceivedBuffer[indexofNewReceivedBuffer] = '\0';
+      break;
+    }
+  }
+
+  // Decode last given data
+  if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
+    return false;
+
+  // Check flag status
+  if (communicationFlag == Idle || communicationFlag == End)
+    return false;
+
+  // Maybe not need, right?
+  delay(10);
+
+  // IMPORTANT NOTICE: Actually When we arrived this point, we arrived
+  // Worst case point even though It was TRUE. If you came there, program will
+  // Run till communication flag will be END or IDLE type. Otherwise, this
+  // Point is related with CONTINUE status
+  return true;
+}
+
+bool fillNewDeviceData(char address) {
+
+  if (communicationFlag == Idle) {
+    unknownEvent(sizeofReceivedBuffer, receivedBuffer);
+    blackList.pushFront(address);
+    return false;
+  }
+
+  // IMPORTANT NOTICE: Before decoding inside data, we need firstly
+  // Calculate count of data delimiter. This result gives us that how
+  // Many different data included in this inside data
+  unsigned short countofCharacter = howManyCharacter(DATA_DELIMITER, sizeofReceivedBuffer, receivedBuffer);
+
+  // Generate a delimiter data and use in with decoding function
+  char *decodeBuffer = generateDelimiterBuffer(DATA_DELIMITER, countofCharacter);
+  char **newReceivedBuffer = Serialization.decode(countofCharacter, decodeBuffer, sizeofReceivedBuffer, receivedBuffer);
+
+  // IMPORTANT NOTICE: In this program, we have two data type, one of
+  // Them VENDOR data, other is FUNCTION data. Because of this we have two
+  // Statement in switch case
+  if (index == 0) {
+
+    for (unsigned short index = 0;; index++) {
+      if (newReceivedBuffer[index] == NULL)
+        break;
+      Serial.println(newReceivedBuffer[index]);
+    }
+  }
+  else {
+
+    for (unsigned short index = 0;; index++) {
+      if (newReceivedBuffer[index] == NULL)
+        break;
+      Serial.println(newReceivedBuffer[index]);
+    }
+  }
+
+  // If everything goes well, we will arrive here and return true
+  return true;
+}
+
+void unknownEvent(unsigned short sizeofData, char data[]) {
+
+  // Notify user
+  Serial.print("Error! Unexpected <");
+  Serial.print(data);
+  Serial.print(">[");
+  Serial.print(sizeofData);
+  Serial.println("] data received.");
+
+  // At the end, free up out-of-date buffer data
+  receivedBuffer[0] = '\0';
+  sizeofReceivedBuffer = 0;
+}
+
+bool decodeData(unsigned short sizeofData, char data[]) {
+
+  if (sizeofData == 0 || data == NULL)
+    return false;
+
+  // Decode given data, Calculate up-of-date and needed buffer size
+  char **newReceivedBuffer = Serialization.decode(PROTOCOL_DELIMITERS_SIZE, PROTOCOL_DELIMITERS, sizeofData, data);
+
+  // Null operator check
+  if (newReceivedBuffer == NULL)
+    return false;
+
+  // Null operator check
+  if (newReceivedBuffer[0] == NULL || newReceivedBuffer[1] == NULL)
+    return false;
+
+  // -----
+
+  // IMPORTANT NOTICE: As I said before, NodeMCU do not support lots of
+  // C++ library. This one is one of these, also. At the here, we can not
+  // Use directly strlen function. For solving, first we need to get inside data,
+  // After we need to calculate size of the given data
+  char internalData0[BUFFER_SIZE];
+  sprintf(internalData0, "%s", newReceivedBuffer[0]);
+  unsigned short sizeofInternalData0 = strlen(internalData0);
+
+  char internalData1[BUFFER_SIZE];
+  sprintf(internalData1, "%s", newReceivedBuffer[1]);
+  unsigned short sizeofInternalData1 = strlen(internalData1);
+
+  // -----
+
+  switch (internalData1[0]) {
+    case IDLE_SINGLE_START:
+    case IDLE_MULTI_END:
+      communicationFlag = End;
+      break;
+    case IDLE_MULTI_START:
+      communicationFlag = Continue;
+      break;
+    default:
+      communicationFlag = Idle;
+      return false;
+  }
+
+  for (unsigned short index = 0; index < sizeofInternalData0; index++)
+    receivedBuffer[sizeofReceivedBuffer + index] = internalData0[index];
+
+  // Add an endofline character to tail
+  receivedBuffer[sizeofReceivedBuffer + sizeofInternalData0] = '\0';
+  sizeofReceivedBuffer += sizeofInternalData0;
+
+  // If everything goes well, we will arrive here and return true
+  return true;
+}
+
+bool encodeData(unsigned short sizeofData, char data[]) {
+
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  for (char index = 0; index < sizeofGivenBuffer; index++)
+    givenBuffer[index][0] = '\0';
+
+  sizeofGivenBuffer = 0;
+  indexofGivenBuffer = 0;
+
+  // -----
+
+  if (sizeofData == 0 || data == NULL)
+    return false;
+
+  // Second, calculete size of data and modulus
+  unsigned short modulusofGivenBuffer = (sizeofData % DIVISOR_NUMBER);
+  sizeofGivenBuffer = (sizeofData / DIVISOR_NUMBER);
+
+  // Add modulos of data, if possible
+  if (modulusofGivenBuffer > 0)
+    sizeofGivenBuffer++;
+
+  // -----
+
+  for (unsigned short index = 0; index < sizeofGivenBuffer; index++) {
+
+    unsigned short subIndex;
+    unsigned short upperBound = (index == sizeofGivenBuffer - 1 ? modulusofGivenBuffer : DIVISOR_NUMBER);
+
+    for (subIndex = 0; subIndex < upperBound; subIndex++)
+      givenBuffer[index][subIndex + 1] = data[(index * DIVISOR_NUMBER) + subIndex];
+
+    // IMPORTANT NOTICE: At the here, We have two status for encoding data(s)
+    // If you set the penultimate char as multiSTART, this means data is still available
+    // For encoding. But if you set this var as multiEND, this means encoding is over
+    // We are making this for receiver side. singleSTART means that data can encode
+    // As one packet, do not need any more encoding
+    if (sizeofGivenBuffer == 1)
+      givenBuffer[index][subIndex + 2] = (char)IDLE_SINGLE_START;
+    else if (index == sizeofGivenBuffer - 1)
+      givenBuffer[index][subIndex + 2] = (char)IDLE_MULTI_END;
+    else
+      givenBuffer[index][subIndex + 2] = (char)IDLE_MULTI_START;
+
+    givenBuffer[index][0] = PROTOCOL_DELIMITERS[0];
+    givenBuffer[index][subIndex + 1] = PROTOCOL_DELIMITERS[1];
+    givenBuffer[index][subIndex + 3] = PROTOCOL_DELIMITERS[2];
+    givenBuffer[index][subIndex + 4] = '\0';
+  }
+
+  // If everything goes well, we will arrive here and return true
+  return true;
+}
+
+char *generateDelimiterBuffer(char *character, unsigned short sizeofData) {
+
+  if (sizeofData == 0)
+    return false;
+
+  // Store count of found on this variable
+  char arrayofCharacter[sizeofData + 1];
+
+  for (unsigned short index = 0; index < sizeofData; index++)
+    arrayofCharacter[index] = *character;
+
+  // Set last bit as end-of-line bit
+  arrayofCharacter[sizeofData] = '\0';
+
+  return arrayofCharacter;
+}
+
+unsigned short howManyCharacter(char *character, unsigned short sizeofData, char data[]) {
+
+  if (sizeofData == 0 || data == NULL)
+    return 0;
+
+  // Store count of found on this variable
+  char countofCharacter = 0;
+
+  for (unsigned short index = 0; index < sizeofData; index++)
+    if (*character == data[index])
+      countofCharacter++;
+
+  return countofCharacter;
+}
+
+bool isNumeric(unsigned short sizeofData, char data[]) {
+
+  if (sizeofData == 0 || data == NULL)
+    return false;
+
+  for (unsigned short index = 0; index < sizeofData; index++)
+    if (isdigit(data[index]) == 0)
+      return false;
+
+  return true;
+}
+
+bool isAlphanumeric(unsigned short sizeofData, char data[]) {
+
+  if (sizeofData == 0 || data == NULL)
+    return false;
+
+  // Check function ID, type is alphanumeric
+  for (unsigned short index = 0; index < sizeofData; index++)
+    if (isalnum(data[index]) == 0)
+      return false;
+
+  return true;
+}
