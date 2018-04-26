@@ -46,7 +46,7 @@
 
 // -----
 
-enum handshakeData {Unknown, Ready, Blocked};
+enum handshakeData {Unknown, Ready};
 enum communicationData {Idle, Continue, End};
 
 struct vendorData {
@@ -111,7 +111,16 @@ void loop() {
   // Register these device(s) to system, after continue what you do
   if (registerList.size() != 0) {
 
+    // Free up out-of-date buffer data
+    receivedBuffer[0] = '\0';
+    sizeofReceivedBuffer = 0;
+
     for (unsigned short index = 0; index < sizeofFunctionList; index++) {
+
+      // Free up out-of-date buffer data
+      // We made it twice, This one is for top level clearing
+      receivedBuffer[0] = '\0';
+      sizeofReceivedBuffer = 0;
 
       char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
       char *resultBuffer[] = {functionList[index], "NULL"};
@@ -139,21 +148,31 @@ void loop() {
       while (true) {
 
         // More info was given at inside of this function
+        // Actually, that's not worst case
         if (!requestConfigofNewDevice(registerList[0]))
           break;
+
+        // IMPORTANT NOTICE: At the here, We are making output control.
+        // The last Code that given at above changes global output(s). So,
+        // For next operations, We need to check this output(s) and in this
+        // Way detect our current status
+        if (communicationFlag == Idle || communicationFlag == End)
+          break;
+      }
+
+      // If it is still IDLE, that's mean data is corrupted
+      if (communicationFlag == Idle) {
+        unknownEvent(sizeofReceivedBuffer, receivedBuffer);
+        blackList.pushFront(registerList[0]);
+        break;
       }
 
       // More info was given at inside of this function
       if (!fillNewDeviceData(index, registerList[0]))
         break;
-
-      // At the end, free up out-of-date buffer data
-      receivedBuffer[0] = '\0';
-      sizeofReceivedBuffer = 0;
     }
 
     registerList.popFront();
-    Serial.println(deviceList[0].vendorList.Brand);
   }
 }
 
@@ -190,10 +209,6 @@ bool requestConfigofNewDevice(char address) {
   if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
     return false;
 
-  // Check flag status
-  if (communicationFlag == Idle || communicationFlag == End)
-    return false;
-
   // Maybe not need, right?
   delay(10);
 
@@ -211,28 +226,43 @@ bool fillNewDeviceData(unsigned short index, char address) {
   // Many different data included in this inside data
   unsigned short countofCharacter = howManyCharacter(DATA_DELIMITER, sizeofReceivedBuffer, receivedBuffer);
 
-  if (communicationFlag == Idle || countofCharacter == 0) {
-    unknownEvent(sizeofReceivedBuffer, receivedBuffer);
-    blackList.pushFront(address);
-    return false;
-  }
-
   // Generate a delimiter data and use in with decoding function
   char *decodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, countofCharacter);
   char **newReceivedBuffer = Serialization.decode(countofCharacter, decodeDelimiter, sizeofReceivedBuffer, receivedBuffer);
 
-  // IMPORTANT NOTICE: In this program, we have two data type, one of them 
+  // IMPORTANT NOTICE: In this program, we have two data type, one of them
   // Is VENDOR data, other one is FUNCTION data. Because of this we have two
   // Statement in switch case
   switch (index) {
     case 0:
       if (!fillVendorData(address, countofCharacter, newReceivedBuffer))
         return false;
+
+      // Notify users
+      Serial.print("Done! The vendors of [0x");
+      Serial.print(address, HEX);
+      Serial.println("] address were saved successfully to system.");
+
+      Serial.print("\t BRAND: ");
+      Serial.println(newReceivedBuffer[0]);
+      Serial.print("\t MODEL: ");
+      Serial.println(newReceivedBuffer[1]);
+      Serial.print("\t VERSION: ");
+      Serial.println(newReceivedBuffer[2]);
+      Serial.println("\t ---");
+
       break;
 
     case 1:
       if (!fillFunctionData(address, countofCharacter, newReceivedBuffer))
         return false;
+
+      for (unsigned short index = 0; index < countofCharacter + 1; index += 3) {
+        Serial.print("\t FUNCTION: ");
+        Serial.println(newReceivedBuffer[index]);
+      }
+      Serial.println("\t ---");
+
       break;
 
     default:
@@ -267,7 +297,7 @@ bool fillVendorData(char address, unsigned short sizeofData, char **data) {
   }
 
   for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
-    if (data[0][index] == NULL) {
+    if (data[1][index] == NULL) {
       newDeviceData.vendorList.Brand[index] = '\0';
       break;
     }
@@ -275,13 +305,16 @@ bool fillVendorData(char address, unsigned short sizeofData, char **data) {
   }
 
   for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
-    if (data[0][index] == NULL) {
+    if (data[2][index] == NULL) {
       newDeviceData.vendorList.Brand[index] = '\0';
       break;
     }
     newDeviceData.vendorList.Version[index] = data[2][index];
   }
 
+  // -----
+
+  // Major code for device list
   deviceList.pushFront(newDeviceData);
 
   // If everything goes well, we will arrive here and return true
@@ -296,6 +329,53 @@ bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
     blackList.pushFront(address);
     return false;
   }
+
+  for (unsigned short index = 0; index < sizeofData + 1; index += 3) {
+
+    char internalData0[BUFFER_SIZE];
+    sprintf(internalData0, "%s", data[0]);
+    unsigned short sizeofInternalData0 = strlen(internalData0);
+    if (!isAlphanumeric(sizeofInternalData0, internalData0))
+      break;
+
+    char internalData1[BUFFER_SIZE];
+    sprintf(internalData1, "%s", data[1]);
+    unsigned short sizeofInternalData1 = strlen(internalData1);
+    if (!isNumeric(sizeofInternalData1, internalData1))
+      break;
+
+    char internalData2[BUFFER_SIZE];
+    sprintf(internalData2, "%s", data[2]);
+    unsigned short sizeofInternalData2 = strlen(internalData2);
+    if (!isNumeric(sizeofInternalData2, internalData2))
+      break;
+
+    // -----
+
+    // IMPORTANT NOTICE: When a new device is registered to master,
+    // We are decoding all function Data at the here. When we are doing
+    // All of these also we need temp variable
+    struct functionData newFunctionData;
+
+    for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
+      if (data[0][index] == NULL) {
+        newFunctionData.Name[index] = '\0';
+        break;
+      }
+      newFunctionData.Name[index] = data[0][index];
+    }
+
+    newFunctionData.Request = (bool)atoi(data[index + 1]);
+    newFunctionData.Interval = atoi(data[index + 2]);
+
+    // If we can arrive there, we can say function data is ok
+    deviceList[0].functionList.pushFront(newFunctionData);
+  }
+
+  // I KNOW ... I KNOW, I AM GOD OF EVERYTHING (JOKE)...
+  // ADDED AT 26.04.2018 BY BERK ALTUN, LAST MAJOR ADDITION
+  deviceList[0].handshake = Ready;
+  deviceList[0].address = address;
 
   // If everything goes well, we will arrive here and return true
   return true;
@@ -352,11 +432,11 @@ bool decodeData(unsigned short sizeofData, char data[]) {
     case IDLE_MULTI_END:
       communicationFlag = End;
       break;
-    
+
     case IDLE_MULTI_START:
       communicationFlag = Continue;
       break;
-    
+
     default:
       communicationFlag = Idle;
       return false;
