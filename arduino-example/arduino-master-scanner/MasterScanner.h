@@ -59,7 +59,7 @@ private:
         byte connectedSlavesCount = 0;
     };
 
-    const data defaultData;
+    data defaultData;
     data givenData = defaultData;
 
     uint16_t previousMillis = 0;
