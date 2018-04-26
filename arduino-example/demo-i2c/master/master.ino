@@ -244,11 +244,11 @@ bool fillNewDeviceData(unsigned short index, char address) {
       Serial.println("] address were saved successfully to system.");
 
       Serial.print("\t BRAND: ");
-      Serial.println(newReceivedBuffer[0]);
+      Serial.println(deviceList[0].vendorList.Brand);
       Serial.print("\t MODEL: ");
-      Serial.println(newReceivedBuffer[1]);
+      Serial.println(deviceList[0].vendorList.Model);
       Serial.print("\t VERSION: ");
-      Serial.println(newReceivedBuffer[2]);
+      Serial.println(deviceList[0].vendorList.Version);
       Serial.println("\t ---");
 
       break;
@@ -257,9 +257,9 @@ bool fillNewDeviceData(unsigned short index, char address) {
       if (!fillFunctionData(address, countofCharacter, newReceivedBuffer))
         return false;
 
-      for (unsigned short index = 0; index < countofCharacter + 1; index += 3) {
+      for (unsigned short index = 0; index < deviceList[0].functionList.size(); index++) {
         Serial.print("\t FUNCTION: ");
-        Serial.println(newReceivedBuffer[index]);
+        Serial.println(deviceList[0].functionList[index].Name);
       }
       Serial.println("\t ---");
 
@@ -298,7 +298,7 @@ bool fillVendorData(char address, unsigned short sizeofData, char **data) {
 
   for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
     if (data[1][index] == NULL) {
-      newDeviceData.vendorList.Brand[index] = '\0';
+      newDeviceData.vendorList.Model[index] = '\0';
       break;
     }
     newDeviceData.vendorList.Model[index] = data[1][index];
@@ -306,7 +306,7 @@ bool fillVendorData(char address, unsigned short sizeofData, char **data) {
 
   for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
     if (data[2][index] == NULL) {
-      newDeviceData.vendorList.Brand[index] = '\0';
+      newDeviceData.vendorList.Version[index] = '\0';
       break;
     }
     newDeviceData.vendorList.Version[index] = data[2][index];
@@ -333,19 +333,19 @@ bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
   for (unsigned short index = 0; index < sizeofData + 1; index += 3) {
 
     char internalData0[BUFFER_SIZE];
-    sprintf(internalData0, "%s", data[0]);
+    sprintf(internalData0, "%s", data[index]);
     unsigned short sizeofInternalData0 = strlen(internalData0);
     if (!isAlphanumeric(sizeofInternalData0, internalData0))
       break;
 
     char internalData1[BUFFER_SIZE];
-    sprintf(internalData1, "%s", data[1]);
+    sprintf(internalData1, "%s", data[index + 1]);
     unsigned short sizeofInternalData1 = strlen(internalData1);
     if (!isNumeric(sizeofInternalData1, internalData1))
       break;
 
     char internalData2[BUFFER_SIZE];
-    sprintf(internalData2, "%s", data[2]);
+    sprintf(internalData2, "%s", data[index + 2]);
     unsigned short sizeofInternalData2 = strlen(internalData2);
     if (!isNumeric(sizeofInternalData2, internalData2))
       break;
@@ -357,16 +357,16 @@ bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
     // All of these also we need temp variable
     struct functionData newFunctionData;
 
-    for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
-      if (data[0][index] == NULL) {
-        newFunctionData.Name[index] = '\0';
+    for (unsigned short subindex = 0; subindex < BUFFER_SIZE; subindex++) {
+      if (internalData0[subindex] == NULL) {
+        newFunctionData.Name[subindex] = '\0';
         break;
       }
-      newFunctionData.Name[index] = data[0][index];
+      newFunctionData.Name[subindex] = internalData0[subindex];
     }
 
-    newFunctionData.Request = (bool)atoi(data[index + 1]);
-    newFunctionData.Interval = atoi(data[index + 2]);
+    newFunctionData.Request = (bool)atoi(internalData1);
+    newFunctionData.Interval = atoi(internalData2);
 
     // If we can arrive there, we can say function data is ok
     deviceList[0].functionList.pushFront(newFunctionData);
