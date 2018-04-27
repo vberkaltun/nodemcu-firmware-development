@@ -1,6 +1,6 @@
 /*
  * TimerQueue.cpp
- * TIMER QUEUE - 29.03.2018
+ * TIMER QUEUE - 28.04.2018
  * 
  * =============================================================================
  *
@@ -36,9 +36,9 @@ bool Timer::isRegistered(void (*pointer)(void)) {
     bool isRegisteredFlag = false;
 
     if (timerQueueArray != NULL) {
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
-            if (pointer == timerQueueArray[currentQueueCount].pointer) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
+            if (pointer == timerQueueArray[currentQueueCount].pointer) {
                 isRegisteredFlag = true;
                 break;
             }
@@ -48,12 +48,12 @@ bool Timer::isRegistered(void (*pointer)(void)) {
     return isRegisteredFlag;
 }
 
-bool Timer::checkRange(uint16_t _intervalMillis) {
+bool Timer::checkRange(unsigned short intervalMillis) {
 
-    if (_intervalMillis < DEFAULT_INTERVAL_MILLIS_MIN)
+    if (intervalMillis < DEFAULT_INTERVAL_MILLIS_MIN)
         return false;
 
-    if (_intervalMillis > DEFAULT_INTERVAL_MILLIS_MAX)
+    if (intervalMillis > DEFAULT_INTERVAL_MILLIS_MAX)
         return false;
 
     return true;
@@ -73,26 +73,26 @@ Timer::Timer() {
 
 // -----
 
-bool Timer::enqueue(void (*pointer)(void)) {
+bool Timer::attach(void (*pointer)(void)) {
 
-    return this->enqueue(pointer, DEFAULT_INTERVAL_MILLIS, DEFAULT_STATUS);
+    return this->attach(pointer, DEFAULT_INTERVAL_MILLIS, DEFAULT_STATUS);
 }
 
-bool Timer::enqueue(void (*pointer)(void), uint16_t _intervalMillis) {
+bool Timer::attach(void (*pointer)(void), unsigned short intervalMillis) {
 
-    return this->enqueue(pointer, _intervalMillis, DEFAULT_STATUS);
+    return this->attach(pointer, intervalMillis, DEFAULT_STATUS);
 }
 
-bool Timer::enqueue(void (*pointer)(void), bool _status) {
+bool Timer::attach(void (*pointer)(void), bool enabledStatus) {
 
-    return this->enqueue(pointer, DEFAULT_INTERVAL_MILLIS, _status);
+    return this->attach(pointer, DEFAULT_INTERVAL_MILLIS, enabledStatus);
 }
 
-bool Timer::enqueue(void (*pointer)(void), uint16_t _intervalMillis, bool _enabledStatus) {
+bool Timer::attach(void (*pointer)(void), unsigned short intervalMillis, bool enabledStatus) {
 
-    bool enqueueFlag = false;
+    bool attachFlag = false;
 
-    if (!isRegistered(pointer) && checkRange(_intervalMillis) && timerQueueCount < DEFAULT_QUEUE_SIZE) {
+    if (!isRegistered(pointer) && checkRange(intervalMillis) && timerQueueCount < DEFAULT_QUEUE_SIZE) {
 
         if (timerQueueArray == NULL)
             timerQueueArray = (data *) malloc(sizeof (data)*(++timerQueueCount));
@@ -100,23 +100,23 @@ bool Timer::enqueue(void (*pointer)(void), uint16_t _intervalMillis, bool _enabl
             timerQueueArray = (data *) realloc(timerQueueArray, sizeof (data)*(++timerQueueCount));
 
         timerQueueArray[timerQueueCount - 1].pointer = pointer;
-        timerQueueArray[timerQueueCount - 1].intervalMillis = _intervalMillis;
+        timerQueueArray[timerQueueCount - 1].intervalMillis = intervalMillis;
         timerQueueArray[timerQueueCount - 1].previousMillis = millis();
-        timerQueueArray[timerQueueCount - 1].enabledStatus = _enabledStatus;
+        timerQueueArray[timerQueueCount - 1].enabledStatus = enabledStatus;
 
-        enqueueFlag = true;
+        attachFlag = true;
     }
 
-    return enqueueFlag;
+    return attachFlag;
 }
 
-bool Timer::dequeue(void (*pointer)(void)) {
+bool Timer::detach(void (*pointer)(void)) {
 
-    bool dequeueFlag = false;
+    bool detachFlag = false;
 
     if (isRegistered(pointer)) {
 
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
             if (timerQueueArray[currentQueueCount].pointer == pointer) {
 
@@ -128,33 +128,33 @@ bool Timer::dequeue(void (*pointer)(void)) {
                     timerQueueArray = (data *) realloc(timerQueueArray, sizeof (data)*(--timerQueueCount));
                 }
 
-                dequeueFlag = true;
+                detachFlag = true;
                 break;
             }
         }
     }
 
-    return dequeueFlag;
+    return detachFlag;
 }
 
 // -----
 
-void Timer::startTimer() {
+void Timer::start() {
 
-    for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++)
+    for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++)
         timerQueueArray[currentQueueCount].previousMillis = millis();
 
     timerEnabledStatus = true;
 }
 
-void Timer::loopTimer() {
+void Timer::loop() {
 
     while (timerEnabledStatus && timerQueueArray != NULL) {
 
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
             if (timerQueueArray[currentQueueCount].enabledStatus == true) {
 
-                uint16_t currentMillis = millis();
+                unsigned short currentMillis = millis();
 
                 if (currentMillis - timerQueueArray[currentQueueCount].previousMillis >= timerQueueArray[currentQueueCount].intervalMillis) {
 
@@ -167,7 +167,7 @@ void Timer::loopTimer() {
     }
 }
 
-void Timer::stopTimer() {
+void Timer::stop() {
 
     timerEnabledStatus = false;
 }
@@ -180,7 +180,7 @@ bool Timer::startProcess(void (*pointer)(void)) {
 
     if (isRegistered(pointer)) {
 
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
             // save the last time you blinked the LED
             if (timerQueueArray[currentQueueCount].pointer == pointer) {
@@ -201,7 +201,7 @@ bool Timer::stopProcess(void (*pointer)(void)) {
 
     if (isRegistered(pointer)) {
 
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
             // save the last time you blinked the LED
             if (timerQueueArray[currentQueueCount].pointer == pointer) {

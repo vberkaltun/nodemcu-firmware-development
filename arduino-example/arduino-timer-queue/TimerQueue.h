@@ -52,32 +52,32 @@ private:
     struct data {
         void (*pointer)(void) = NULL;
         bool enabledStatus = DEFAULT_STATUS;
-        uint16_t previousMillis = 0;
-        uint16_t intervalMillis = DEFAULT_INTERVAL_MILLIS;
+        unsigned short previousMillis = 0;
+        unsigned short intervalMillis = DEFAULT_INTERVAL_MILLIS;
     };
 
     struct data *timerQueueArray = NULL;
-    byte timerQueueCount = 0;
+    char timerQueueCount = 0;
     bool timerEnabledStatus = false;
 
     // -----
 
     bool isRegistered(void (*pointer)(void));
-    bool checkRange(uint16_t _intervalMillis);
+    bool checkRange(unsigned short intervalMillis);
 
 public:
 
     Timer();
 
-    bool enqueue(void (*pointer)(void));
-    bool enqueue(void (*pointer)(void), uint16_t _intervalMillis);
-    bool enqueue(void (*pointer)(void), bool _status);
-    bool enqueue(void (*pointer)(void), uint16_t _intervalMillis, bool _enabledStatus);
-    bool dequeue(void (*pointer)(void));
+    bool attach(void (*pointer)(void));
+    bool attach(void (*pointer)(void), unsigned short intervalMillis);
+    bool attach(void (*pointer)(void), bool enabledStatus);
+    bool attach(void (*pointer)(void), unsigned short intervalMillis, bool enabledStatus);
+    bool detach(void (*pointer)(void));
 
-    void startTimer();
-    void loopTimer();
-    void stopTimer();
+    void start();
+    void loop();
+    void stop();
 
     bool startProcess(void (*pointer)(void));
     bool stopProcess(void (*pointer)(void));

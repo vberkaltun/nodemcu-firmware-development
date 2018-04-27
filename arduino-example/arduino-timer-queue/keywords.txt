@@ -10,12 +10,12 @@
 # Methods and Functions (KEYWORD2)
 ########################################
 
-enqueue				KEYWORD2
-dequeue				KEYWORD2
+attach				KEYWORD2
+detach				KEYWORD2
 
-startTimer			KEYWORD2
-loopTimer			KEYWORD2
-stopTimer			KEYWORD2
+start				KEYWORD2
+loop				KEYWORD2
+stop				KEYWORD2
 
 startProcess			KEYWORD2
 stopProcess			KEYWORD2
