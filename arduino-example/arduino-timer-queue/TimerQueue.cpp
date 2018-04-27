@@ -92,12 +92,7 @@ bool Timer::attach(void (*pointer)(void), unsigned long intervalMillis, bool ena
 
     bool attachFlag = false;
 
-    if (!isRegistered(pointer) && checkRange(intervalMillis) && timerQueueCount < DEFAULT_QUEUE_SIZE) {
-
-        if (timerQueueArray == NULL)
-            timerQueueArray = (data *) malloc(sizeof (data)*(++timerQueueCount));
-        else
-            timerQueueArray = (data *) realloc(timerQueueArray, sizeof (data)*(++timerQueueCount));
+    if (!isRegistered(pointer) && checkRange(intervalMillis) && ++timerQueueCount < DEFAULT_QUEUE_SIZE) {
 
         timerQueueArray[timerQueueCount - 1].pointer = pointer;
         timerQueueArray[timerQueueCount - 1].intervalMillis = intervalMillis;
@@ -134,6 +129,9 @@ void Timer::loop() {
                     // save the last time you blinked the LED
                     timerQueueArray[currentQueueCount].previousMillis = currentMillis;
                     timerQueueArray[currentQueueCount].pointer();
+
+                    // Additional for NodeMCU
+                    yield();
                 }
             }
         }
