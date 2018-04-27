@@ -75,17 +75,17 @@ Timer::Timer() {
 
 bool Timer::attach(void (*pointer)(void)) {
 
-    return this->enqueue(pointer, DEFAULT_INTERVAL_MILLIS, DEFAULT_STATUS);
+    return this->attach(pointer, DEFAULT_INTERVAL_MILLIS, DEFAULT_STATUS);
 }
 
 bool Timer::attach(void (*pointer)(void), unsigned short intervalMillis) {
 
-    return this->enqueue(pointer, intervalMillis, DEFAULT_STATUS);
+    return this->attach(pointer, intervalMillis, DEFAULT_STATUS);
 }
 
 bool Timer::attach(void (*pointer)(void), bool enabledStatus) {
 
-    return this->enqueue(pointer, DEFAULT_INTERVAL_MILLIS, enabledStatus);
+    return this->attach(pointer, DEFAULT_INTERVAL_MILLIS, enabledStatus);
 }
 
 bool Timer::attach(void (*pointer)(void), unsigned short intervalMillis, bool enabledStatus) {
