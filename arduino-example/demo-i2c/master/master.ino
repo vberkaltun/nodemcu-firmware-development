@@ -148,6 +148,20 @@ void disconnectedSlaves(uint8_t _array[], byte _count) {
   Serial.println("\t ---");
 }
 
+void unknownEvent(unsigned short sizeofData, char data[]) {
+
+  // Notify user
+  Serial.print("Error! Unexpected <");
+  Serial.print(data);
+  Serial.print(">[");
+  Serial.print(sizeofData);
+  Serial.println("] data received.");
+
+  // At the end, free up out-of-date buffer data
+  receivedBuffer[0] = '\0';
+  sizeofReceivedBuffer = 0;
+}
+
 void registerNewDevice(char address) {
 
   for (unsigned short index = 0; index < sizeofFunctionList; index++) {
@@ -412,20 +426,6 @@ bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
 
   // If everything goes well, we will arrive here and return true
   return true;
-}
-
-void unknownEvent(unsigned short sizeofData, char data[]) {
-
-  // Notify user
-  Serial.print("Error! Unexpected <");
-  Serial.print(data);
-  Serial.print(">[");
-  Serial.print(sizeofData);
-  Serial.println("] data received.");
-
-  // At the end, free up out-of-date buffer data
-  receivedBuffer[0] = '\0';
-  sizeofReceivedBuffer = 0;
 }
 
 bool decodeData(unsigned short sizeofData, char data[]) {
