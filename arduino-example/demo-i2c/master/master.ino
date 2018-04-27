@@ -68,8 +68,6 @@ struct deviceData {
   char address = NULL;
 };
 
-QueueList<char> blackList;
-QueueList<char> registerList;
 QueueList<deviceData> deviceList;
 enum communicationData communicationFlag = Idle;
 
