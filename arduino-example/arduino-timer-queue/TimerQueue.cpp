@@ -36,9 +36,9 @@ bool Timer::isRegistered(void (*pointer)(void)) {
     bool isRegisteredFlag = false;
 
     if (timerQueueArray != NULL) {
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
-            if (pointer == timerQueueArray[currentQueueCount].pointer) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
+            if (pointer == timerQueueArray[currentQueueCount].pointer) {
                 isRegisteredFlag = true;
                 break;
             }
@@ -48,7 +48,7 @@ bool Timer::isRegistered(void (*pointer)(void)) {
     return isRegisteredFlag;
 }
 
-bool Timer::checkRange(uint16_t _intervalMillis) {
+bool Timer::checkRange(unsigned short intervalMillis) {
 
     if (_intervalMillis < DEFAULT_INTERVAL_MILLIS_MIN)
         return false;
@@ -116,7 +116,7 @@ bool Timer::dequeue(void (*pointer)(void)) {
 
     if (isRegistered(pointer)) {
 
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
             if (timerQueueArray[currentQueueCount].pointer == pointer) {
 
@@ -141,7 +141,7 @@ bool Timer::dequeue(void (*pointer)(void)) {
 
 void Timer::startTimer() {
 
-    for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++)
+    for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++)
         timerQueueArray[currentQueueCount].previousMillis = millis();
 
     timerEnabledStatus = true;
@@ -151,10 +151,10 @@ void Timer::loopTimer() {
 
     while (timerEnabledStatus && timerQueueArray != NULL) {
 
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
             if (timerQueueArray[currentQueueCount].enabledStatus == true) {
 
-                uint16_t currentMillis = millis();
+                unsigned short currentMillis = millis();
 
                 if (currentMillis - timerQueueArray[currentQueueCount].previousMillis >= timerQueueArray[currentQueueCount].intervalMillis) {
 
@@ -180,7 +180,7 @@ bool Timer::startProcess(void (*pointer)(void)) {
 
     if (isRegistered(pointer)) {
 
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
             // save the last time you blinked the LED
             if (timerQueueArray[currentQueueCount].pointer == pointer) {
@@ -201,7 +201,7 @@ bool Timer::stopProcess(void (*pointer)(void)) {
 
     if (isRegistered(pointer)) {
 
-        for (byte currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
+        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
 
             // save the last time you blinked the LED
             if (timerQueueArray[currentQueueCount].pointer == pointer) {
