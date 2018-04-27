@@ -89,10 +89,6 @@ char *functionList[] = {"getVendors",
                         "getFunctionList"
                        };
 
-// TEMPORARILY, will be delete on release
-#define WIRE_BEGIN1 0x30
-#define WIRE_BEGIN2 0x32
-
 void setup() {
 
   // Initialize communication on serial protocol
