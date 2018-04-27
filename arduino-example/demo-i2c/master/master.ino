@@ -109,43 +109,82 @@ void loop() {
   delay(500);
 }
 
-void connectedSlaves(uint8_t _array[], byte _count) {
+void connectedSlaves(uint8_t data[], byte sizeofData) {
 
   Serial.print("Done! ");
-  Serial.print(_count, DEC);
+  Serial.print(sizeofData, DEC);
   Serial.println(" slave device(s) connected to I2C bus. ID(s): ");
 
-  for (int i = 0; i < _count; i++) {
+  for (unsigned short index = 0; index < sizeofData; index++) {
     Serial.print("\t ID: 0x");
-    Serial.println(_array[i], HEX);
+    Serial.println(data[index], HEX);
   }
   Serial.println("\t ---");
+
+  // -----
 
   // IMPORTANT NOTICE: Device registering is more priority than others
   // Step, When new device(s) were connected to master device, firstly
   // Register these device(s) to system, after continue what you do
-  for (int i = 0; i < _count; i++) {
+  for (unsigned short index = 0; index < sizeofData; index++) {
 
     // Free up out-of-date buffer data
     receivedBuffer[0] = '\0';
     sizeofReceivedBuffer = 0;
 
     // Register last added device to system
-    registerNewDevice(_array[i]);
+    registerNewDevice(data[index]);
   }
 }
 
-void disconnectedSlaves(uint8_t _array[], byte _count) {
+void disconnectedSlaves(uint8_t data[], byte sizeofData) {
 
   Serial.print("Done! ");
-  Serial.print(_count, DEC);
+  Serial.print(sizeofData, DEC);
   Serial.println(" slave device(s) disconnected from I2C bus.");
 
-  for (int i = 0; i < _count; i++) {
+  for (unsigned short index = 0; index < sizeofData; index++) {
     Serial.print("\t ID: 0x");
-    Serial.println(_array[i], HEX);
+    Serial.println(data[index], HEX);
   }
-  Serial.println("\t ---");
+  Serial.println("\t ");
+
+  // -----
+
+  // IMPORTANT NOTICE: At the here, firstly, we will make a search about
+  // Disconnected device. When we find it, We will delete index of this
+  // Device, and after we will add all temporarily popped device again
+  // If disconnected count is equal to size of device data, delete all
+  if (sizeofData == deviceList.size())
+    deviceList.clear();
+  else {
+
+    for (unsigned short index = 0; index < sizeofData; index++) {
+      if (data[index] == deviceList[0].address) {
+        deviceList.popFront();
+        continue;
+      }
+      if (data[index] == deviceList[deviceList.size() - 1].address) {
+        deviceList.popBack();
+        continue;
+      }
+
+      for (unsigned short subindex = 1; subindex < deviceList.size() - 1; subindex++) {
+        if (deviceList[subindex].address == data[index]) {
+
+          // IMPORTANT NOTICE: In this func, we are making deleting about
+          // Disconnected device. For now, We can not delete it directly, because
+          // Of this. For solving this, firstly we will clone first item to there,
+          // Secondly delete this first item from queue.
+          copyConfigofNewDevice(0, subindex);
+          deviceList.popFront();
+
+          // We found, stop the current session
+          break;
+        }
+      }
+    }
+  }
 }
 
 void unknownEvent(unsigned short sizeofData, char data[]) {
@@ -224,6 +263,54 @@ void registerNewDevice(char address) {
     if (!fillConfigofNewDevice(index, address))
       break;
   }
+}
+
+void copyConfigofNewDevice(char fromAddress, char toAddress) {
+
+  // Worst case, We do not have another solution
+  for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
+    if (deviceList[fromAddress].vendorList.Brand[index] == NULL) {
+      deviceList[toAddress].vendorList.Brand[index] = '\0';
+      break;
+    }
+    deviceList[toAddress].vendorList.Brand[index] = deviceList[fromAddress].vendorList.Brand[index];
+  }
+
+  for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
+    if (deviceList[fromAddress].vendorList.Model[index] == NULL) {
+      deviceList[toAddress].vendorList.Model[index] = '\0';
+      break;
+    }
+    deviceList[toAddress].vendorList.Model[index] = deviceList[fromAddress].vendorList.Model[index];
+  }
+
+  for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
+    if (deviceList[fromAddress].vendorList.Version[index] == NULL) {
+      deviceList[toAddress].vendorList.Version[index] = '\0';
+      break;
+    }
+    deviceList[toAddress].vendorList.Version[index] = deviceList[fromAddress].vendorList.Version[index];
+  }
+
+  // -----
+
+  // Worst case, We do not have another solution
+  for (unsigned short index = 0; index < deviceList[fromAddress].functionList.size(); index++) {
+
+    for (unsigned short subindex = 0; subindex < BUFFER_SIZE; subindex++) {
+      if (deviceList[fromAddress].functionList[index].Name[subindex] == NULL) {
+        deviceList[toAddress].functionList[index].Name[subindex] = '\0';
+        break;
+      }
+      deviceList[toAddress].functionList[index].Name[subindex] =  deviceList[fromAddress].functionList[index].Name[subindex];
+    }
+
+    deviceList[toAddress].functionList[index].Request = deviceList[fromAddress].functionList[index].Request;
+    deviceList[toAddress].functionList[index].Interval = deviceList[fromAddress].functionList[index].Interval;
+  }
+
+  deviceList[toAddress].handshake = deviceList[fromAddress].handshake;
+  deviceList[toAddress].address = deviceList[fromAddress].address;
 }
 
 bool requestConfigofNewDevice(char address) {
