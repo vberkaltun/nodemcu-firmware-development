@@ -1,0 +1,36 @@
+########################################
+# Syntax Coloring Map For Wire
+########################################
+
+########################################
+# Datatypes (KEYWORD1)
+########################################
+
+########################################
+# Methods and Functions (KEYWORD2)
+########################################
+
+setRange			KEYWORD2
+
+resetRange			KEYWORD2
+scanSlaves			KEYWORD2
+
+onConnectedSlaves		KEYWORD2
+onDisconnectedSlaves		KEYWORD2
+
+getStartAddress			KEYWORD2
+getStopAddress			KEYWORD2
+getIntervalMillis		KEYWORD2
+getConnectedSlavesCount		KEYWORD2
+
+isConnected			KEYWORD2
+
+########################################
+# Instances (KEYWORD2)
+########################################
+
+MasterScanner			KEYWORD2
+
+########################################
+# Constants (LITERAL1)
+########################################
