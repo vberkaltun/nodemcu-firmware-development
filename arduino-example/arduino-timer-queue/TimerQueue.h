@@ -62,16 +62,16 @@ private:
     // -----
 
     bool isRegistered(void (*pointer)(void));
-    bool checkRange(unsigned short intervalMillis);
+    bool checkRange(unsigned long intervalMillis);
 
 public:
 
     Timer();
 
     bool attach(void (*pointer)(void));
-    bool attach(void (*pointer)(void), unsigned short intervalMillis);
+    bool attach(void (*pointer)(void), unsigned long intervalMillis);
     bool attach(void (*pointer)(void), bool enabledStatus);
-    bool attach(void (*pointer)(void), unsigned short intervalMillis, bool enabledStatus);
+    bool attach(void (*pointer)(void), unsigned long intervalMillis, bool enabledStatus);
 
     void start();
     void loop();

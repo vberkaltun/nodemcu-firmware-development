@@ -48,7 +48,7 @@ bool Timer::isRegistered(void (*pointer)(void)) {
     return isRegisteredFlag;
 }
 
-bool Timer::checkRange(unsigned short intervalMillis) {
+bool Timer::checkRange(unsigned long intervalMillis) {
 
     if (intervalMillis < DEFAULT_INTERVAL_MILLIS_MIN)
         return false;
@@ -78,7 +78,7 @@ bool Timer::attach(void (*pointer)(void)) {
     return this->attach(pointer, DEFAULT_INTERVAL_MILLIS, DEFAULT_STATUS);
 }
 
-bool Timer::attach(void (*pointer)(void), unsigned short intervalMillis) {
+bool Timer::attach(void (*pointer)(void), unsigned long intervalMillis) {
 
     return this->attach(pointer, intervalMillis, DEFAULT_STATUS);
 }
@@ -88,7 +88,7 @@ bool Timer::attach(void (*pointer)(void), bool enabledStatus) {
     return this->attach(pointer, DEFAULT_INTERVAL_MILLIS, enabledStatus);
 }
 
-bool Timer::attach(void (*pointer)(void), unsigned short intervalMillis, bool enabledStatus) {
+bool Timer::attach(void (*pointer)(void), unsigned long intervalMillis, bool enabledStatus) {
 
     bool attachFlag = false;
 
@@ -127,7 +127,7 @@ void Timer::loop() {
         for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
             if (timerQueueArray[currentQueueCount].enabledStatus == true) {
 
-                unsigned short currentMillis = millis();
+                unsigned long currentMillis = millis();
 
                 if (currentMillis - timerQueueArray[currentQueueCount].previousMillis >= timerQueueArray[currentQueueCount].intervalMillis) {
 
