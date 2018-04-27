@@ -52,11 +52,10 @@ private:
     struct data {
         void (*pointer)(void) = NULL;
         bool enabledStatus = DEFAULT_STATUS;
-        unsigned short previousMillis = 0;
-        unsigned short intervalMillis = DEFAULT_INTERVAL_MILLIS;
-    };
+        unsigned long previousMillis = 0;
+        unsigned long intervalMillis = DEFAULT_INTERVAL_MILLIS;
+    } timerQueueArray[DEFAULT_QUEUE_SIZE];
 
-    struct data *timerQueueArray = NULL;
     char timerQueueCount = 0;
     bool timerEnabledStatus = false;
 
