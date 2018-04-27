@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Serializer.h>
 #include <QueueList.h>
+#include <MasterScanner.h>
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
@@ -95,88 +96,118 @@ void setup() {
   // Initialize communication on Wire protocol
   Wire.begin(D1, D2);
 
-  connectedSlaves();
+  // IMPORTANT NOTICE: Due to our I2C scanner lib, When a new device
+  // Connected or disconnected to master, our I2C scanner lib decides
+  // Which one is to be triggered
+  MasterScanner.onConnectedSlaves(connectedSlaves);
+  MasterScanner.onDisconnectedSlaves(disconnectedSlaves);
 }
 
 void loop() {
 
+  MasterScanner.scanSlaves();
+  delay(500);
+}
+
+void connectedSlaves(uint8_t _array[], byte _count) {
+
+  Serial.print("Done! ");
+  Serial.print(_count, DEC);
+  Serial.println(" slave device(s) connected to I2C bus. ID(s): ");
+
+  for (int i = 0; i < _count; i++) {
+    Serial.print("\t ID: 0x");
+    Serial.println(_array[i], HEX);
+  }
+  Serial.println("\t ---");
+
   // IMPORTANT NOTICE: Device registering is more priority than others
   // Step, When new device(s) were connected to master device, firstly
   // Register these device(s) to system, after continue what you do
-  if (registerList.size() != 0) {
+  for (int i = 0; i < _count; i++) {
 
     // Free up out-of-date buffer data
     receivedBuffer[0] = '\0';
     sizeofReceivedBuffer = 0;
 
-    for (unsigned short index = 0; index < sizeofFunctionList; index++) {
-
-      // Free up out-of-date buffer data
-      // We made it twice, This one is for top level clearing
-      receivedBuffer[0] = '\0';
-      sizeofReceivedBuffer = 0;
-
-      char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
-      char *resultBuffer[] = {functionList[index], "NULL"};
-      char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
-      encodeData(strlen(result), result);
-
-      // Send all remainder data to newly registered slave
-      while (indexofGivenBuffer < sizeofGivenBuffer) {
-        Wire.beginTransmission(registerList[0]);
-        Wire.write(givenBuffer[indexofGivenBuffer++]);
-        Wire.endTransmission();
-
-        // Maybe not need, right?
-        delay(10);
-      }
-
-      // IMPORTANT NOTICE: Due to decoding of slave device, we need to Wait
-      // A little bit. Otherwise, Master device will request data From slave
-      // Device too early and slave cannot send it
-      delay(100);
-
-      // -----
-
-      // We will do this till decoding will return false
-      while (true) {
-
-        // More info was given at inside of this function
-        // Actually, that's not worst case
-        if (!requestConfigofNewDevice(registerList[0]))
-          break;
-
-        // IMPORTANT NOTICE: At the here, We are making output control.
-        // The last Code that given at above changes global output(s). So,
-        // For next operations, We need to check this output(s) and in this
-        // Way detect our current status
-        if (communicationFlag == Idle || communicationFlag == End)
-          break;
-      }
-
-      // If it is still IDLE, that's mean data is corrupted
-      if (communicationFlag == Idle) {
-        unknownEvent(sizeofReceivedBuffer, receivedBuffer);
-        blackList.pushFront(registerList[0]);
-        break;
-      }
-
-      // More info was given at inside of this function
-      if (!fillNewDeviceData(index, registerList[0]))
-        break;
-    }
-
-    registerList.popFront();
+    // Register last added device to system
+    registerNewDevice(_array[i]);
   }
 }
 
-void connectedSlaves() {
+void disconnectedSlaves(uint8_t _array[], byte _count) {
 
-  // Add new connected device to register list
-  registerList.pushFront(WIRE_BEGIN1);
+  Serial.print("Done! ");
+  Serial.print(_count, DEC);
+  Serial.println(" slave device(s) disconnected from I2C bus.");
 
-  // Add new connected device to register list
-  registerList.pushFront(WIRE_BEGIN2);
+  for (int i = 0; i < _count; i++) {
+    Serial.print("\t ID: 0x");
+    Serial.println(_array[i], HEX);
+  }
+  Serial.println("\t ---");
+}
+
+void registerNewDevice(char address) {
+
+  for (unsigned short index = 0; index < sizeofFunctionList; index++) {
+
+    // Free up out-of-date buffer data
+    // We made it twice, This one is for top level clearing
+    receivedBuffer[0] = '\0';
+    sizeofReceivedBuffer = 0;
+
+    char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
+    char *resultBuffer[] = {functionList[index], "NULL"};
+    char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
+    encodeData(strlen(result), result);
+
+    // Send all remainder data to newly registered slave
+    while (indexofGivenBuffer < sizeofGivenBuffer) {
+      Wire.beginTransmission(address);
+      Wire.write(givenBuffer[indexofGivenBuffer++]);
+      Wire.endTransmission();
+
+      // Maybe not need, right?
+      delay(10);
+    }
+
+    // IMPORTANT NOTICE: Due to decoding of slave device, we need to Wait
+    // A little bit. Otherwise, Master device will request data From slave
+    // Device too early and slave cannot send it
+    delay(100);
+
+    // -----
+
+    // We will do this till decoding will return false
+    while (true) {
+
+      // More info was given at inside of this function
+      // Actually, that's not worst case
+      if (!requestConfigofNewDevice(address))
+        break;
+
+      // IMPORTANT NOTICE: At the here, We are making output control.
+      // The code that given at above changes global flag output(s). So,
+      // For next operations, We need to check this output(s) and in this
+      // Way detect our current status
+      if (communicationFlag != Continue)
+        break;
+    }
+
+    // If it is still IDLE, that's mean data is corrupted (Not END)
+    if (communicationFlag == Idle) {
+      unknownEvent(sizeofReceivedBuffer, receivedBuffer);
+      break;
+    }
+
+    // IMPORTANT NOTICE: Final point, If we can arrive there, that's mean
+    // Bus communication is OK but inside data is unknown. At the next code,
+    // We will try to decode our inside data. If we can not do it, we will
+    // Add this unknown device as BLOCKED to system
+    if (!fillConfigofNewDevice(index, address))
+      break;
+  }
 }
 
 bool requestConfigofNewDevice(char address) {
@@ -213,7 +244,7 @@ bool requestConfigofNewDevice(char address) {
   return true;
 }
 
-bool fillNewDeviceData(unsigned short index, char address) {
+bool fillConfigofNewDevice(unsigned short index, char address) {
 
   // IMPORTANT NOTICE: Before decoding inside data, we need firstly
   // Calculate count of data delimiter. This result gives us that how
@@ -224,13 +255,27 @@ bool fillNewDeviceData(unsigned short index, char address) {
   char *decodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, countofCharacter);
   char **newReceivedBuffer = Serialization.decode(countofCharacter, decodeDelimiter, sizeofReceivedBuffer, receivedBuffer);
 
+  // Null operator check
+  if (newReceivedBuffer == NULL)
+    return false;
+
   // IMPORTANT NOTICE: In this program, we have two data type, one of them
   // Is VENDOR data, other one is FUNCTION data. Because of this we have two
   // Statement in switch case
   switch (index) {
     case 0:
-      if (!fillVendorData(address, countofCharacter, newReceivedBuffer))
+      if (!fillVendorData(address, countofCharacter, newReceivedBuffer)) {
+
+        struct deviceData newDeviceData;
+        newDeviceData.handshake = Unknown;
+        newDeviceData.address = address;
+
+        // Major code for device list
+        deviceList.pushFront(newDeviceData);
+        unknownEvent(sizeofReceivedBuffer, receivedBuffer);
+
         return false;
+      }
 
       // Notify users
       Serial.print("Done! The vendors of [0x");
@@ -270,11 +315,8 @@ bool fillNewDeviceData(unsigned short index, char address) {
 bool fillVendorData(char address, unsigned short sizeofData, char **data) {
 
   // Worst case, if vendor list size is not equal to default vendor list size
-  if (sizeofData != 2) {
-    unknownEvent(sizeofReceivedBuffer, receivedBuffer);
-    blackList.pushFront(address);
+  if (sizeofData != 2)
     return false;
-  }
 
   // IMPORTANT NOTICE: When a new device is registered to master,
   // We are decoding all vendor Data at the here. When we are doing
@@ -318,11 +360,8 @@ bool fillVendorData(char address, unsigned short sizeofData, char **data) {
 bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
 
   // Worst case, function list size is equal to char - 1 size
-  if ((sizeofData + 1) % 3 != 0) {
-    unknownEvent(sizeofReceivedBuffer, receivedBuffer);
-    blackList.pushFront(address);
+  if ((sizeofData + 1) % 3 != 0)
     return false;
-  }
 
   for (unsigned short index = 0; index < sizeofData + 1; index += 3) {
 
@@ -433,6 +472,11 @@ bool decodeData(unsigned short sizeofData, char data[]) {
 
     default:
       communicationFlag = Idle;
+
+      // Free up out-of-date buffer data
+      receivedBuffer[0] = '\0';
+      sizeofReceivedBuffer = 0;
+
       return false;
   }
 
@@ -503,6 +547,8 @@ bool encodeData(unsigned short sizeofData, char data[]) {
   // If everything goes well, we will arrive here and return true
   return true;
 }
+
+// -----
 
 char *generateDelimiterBuffer(char *character, unsigned short sizeofData) {
 
