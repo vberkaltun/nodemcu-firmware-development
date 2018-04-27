@@ -73,7 +73,6 @@ public:
     bool attach(void (*pointer)(void), unsigned short intervalMillis);
     bool attach(void (*pointer)(void), bool enabledStatus);
     bool attach(void (*pointer)(void), unsigned short intervalMillis, bool enabledStatus);
-    bool detach(void (*pointer)(void));
 
     void start();
     void loop();

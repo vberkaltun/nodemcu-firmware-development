@@ -110,33 +110,6 @@ bool Timer::attach(void (*pointer)(void), unsigned short intervalMillis, bool en
     return attachFlag;
 }
 
-bool Timer::detach(void (*pointer)(void)) {
-
-    bool detachFlag = false;
-
-    if (isRegistered(pointer)) {
-
-        for (char currentQueueCount = 0; currentQueueCount < timerQueueCount; currentQueueCount++) {
-
-            if (timerQueueArray[currentQueueCount].pointer == pointer) {
-
-                if (timerQueueCount == 1) {
-                    timerQueueArray = NULL;
-                    timerQueueCount = 0;
-                } else {
-                    timerQueueArray[currentQueueCount] = timerQueueArray[timerQueueCount - 1];
-                    timerQueueArray = (data *) realloc(timerQueueArray, sizeof (data)*(--timerQueueCount));
-                }
-
-                detachFlag = true;
-                break;
-            }
-        }
-    }
-
-    return detachFlag;
-}
-
 // -----
 
 void Timer::start() {
