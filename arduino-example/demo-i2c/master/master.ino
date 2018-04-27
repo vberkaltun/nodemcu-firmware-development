@@ -162,6 +162,8 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
   sizeofReceivedBuffer = 0;
 }
 
+// -----
+
 void registerNewDevice(char address) {
 
   for (unsigned short index = 0; index < sizeofFunctionList; index++) {
@@ -427,6 +429,8 @@ bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
   // If everything goes well, we will arrive here and return true
   return true;
 }
+
+// -----
 
 bool decodeData(unsigned short sizeofData, char data[]) {
 
