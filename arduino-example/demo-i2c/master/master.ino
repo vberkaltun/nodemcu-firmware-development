@@ -384,18 +384,8 @@ bool fillConfigofNewDevice(unsigned short index, char address) {
   // Statement in switch case
   switch (index) {
     case 0:
-      if (!fillVendorData(address, countofCharacter, newReceivedBuffer)) {
-
-        struct deviceData newDeviceData;
-        newDeviceData.handshake = Unknown;
-        newDeviceData.address = address;
-
-        // Major code for device list
-        deviceList.pushFront(newDeviceData);
-        unknownEvent(sizeofReceivedBuffer, receivedBuffer);
-
+      if (!fillVendorData(address, countofCharacter, newReceivedBuffer))
         return false;
-      }
 
       // Notify users
       Serial.print("Done! The vendors of [0x");
@@ -435,8 +425,18 @@ bool fillConfigofNewDevice(unsigned short index, char address) {
 bool fillVendorData(char address, unsigned short sizeofData, char **data) {
 
   // Worst case, if vendor list size is not equal to default vendor list size
-  if (sizeofData != 2)
+  if (sizeofData != 2) {
+
+    struct deviceData newDeviceData;
+    newDeviceData.handshake = Unknown;
+    newDeviceData.address = address;
+
+    // Major code for device list
+    deviceList.pushFront(newDeviceData);
+    unknownEvent(sizeofReceivedBuffer, receivedBuffer);
+
     return false;
+  }
 
   // IMPORTANT NOTICE: When a new device is registered to master,
   // We are decoding all vendor Data at the here. When we are doing
