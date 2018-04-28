@@ -2,6 +2,7 @@
 #include <Serializer.h>
 #include <QueueList.h>
 #include <MasterScanner.h>
+#include <TimerQueue.h>
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
@@ -101,12 +102,26 @@ void setup() {
   // Which one is to be triggered
   MasterScanner.onConnectedSlaves(connectedSlaves);
   MasterScanner.onDisconnectedSlaves(disconnectedSlaves);
+
+  // Attach functions to lib and after run main lib
+  TimerQueue.attach(scanSlave, (unsigned long)1000);
+  TimerQueue.attach(requestData, (unsigned long)250);
+  TimerQueue.start();
 }
 
 void loop() {
 
+  // IMPORTANT NOTICE: As you can see, we do not use delay function
+  // In all lib. Delay function is a non-blocking function in Arduino
+  // Core. So solving this, we are using MILLIS()
+  TimerQueue.loop();
+}
+
+void scanSlave() {
   MasterScanner.scanSlaves();
-  delay(500);
+}
+
+void requestData() {
 }
 
 void connectedSlaves(uint8_t data[], byte sizeofData) {
@@ -173,8 +188,8 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
         if (deviceList[subindex].address == data[index]) {
 
           // IMPORTANT NOTICE: In this func, we are making deleting about
-          // Disconnected device. For now, We can not delete it directly, because
-          // Of this. For solving this, firstly we will clone first item to there,
+          // Disconnected device. For now, We can not delete it directly. Because
+          // Of this for solving this, firstly we will clone first item to there,
           // Secondly delete this first item from queue.
           copyConfigofNewDevice(0, subindex);
           deviceList.popFront();
@@ -336,9 +351,6 @@ bool requestConfigofNewDevice(char address) {
   // Decode last given data
   if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
     return false;
-
-  // Maybe not need, right?
-  delay(10);
 
   // IMPORTANT NOTICE: Actually When we arrived this point, we arrived
   // Worst case point even though It was TRUE. If you came there, program will
