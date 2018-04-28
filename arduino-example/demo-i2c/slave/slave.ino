@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Serializer.h>
 #include <EEPROM.h>
+#include <MemoryFree.h>
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
@@ -41,7 +42,7 @@
 // -----
 
 // Do not change default value of this variable
-char* receivedBuffer = NULL;
+char *receivedBuffer = NULL;
 unsigned short sizeofReceivedBuffer = 0;
 
 // Do not change default value of this variable
@@ -89,16 +90,18 @@ void receiveEvent(unsigned short sizeofData) {
   char *newReceivedBuffer = (char *) malloc(sizeof (char) * (sizeofData + 1));
   unsigned short indexofNewReceivedBuffer = 0;
 
+  // Loop through all but the last
   while (Wire.available()) {
-    char bufferValue = Wire.read();
-    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)bufferValue;
 
-    if (bufferValue == (char)PROTOCOL_DELIMITERS[2]) {
+    char currentBuffer = Wire.read();
+    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)currentBuffer;
+
+    if (currentBuffer == (char)PROTOCOL_DELIMITERS[2]) {
       newReceivedBuffer[indexofNewReceivedBuffer] = '\0';
       break;
     }
   }
-  
+
   // -----
 
   if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
@@ -123,7 +126,14 @@ void requestEvent() {
   }
 }
 
+// -----
+
 void unknownEvent(unsigned short sizeofData, char data[]) {
+
+  // Notify user about available memory
+  Serial.print("[Available memory: ");
+  Serial.print(freeMemory());
+  Serial.print("] ");
 
   // Notify user
   Serial.print("Error! Unexpected <");
@@ -197,6 +207,8 @@ void executeEvent(unsigned short sizeofData, char data[]) {
   sizeofReceivedBuffer = 0;
 }
 
+// -----
+
 bool decodeData(unsigned short sizeofData, char data[]) {
 
   if (sizeofData == 0 || data == NULL)
@@ -250,21 +262,6 @@ bool decodeData(unsigned short sizeofData, char data[]) {
 
 bool encodeData(unsigned short sizeofData, char data[]) {
 
-  // IMPORTANT NOTICE: Before the calling internal functions,
-  // Last stored data must be removed on memory. Otherwise, we can not sent
-  // Last stored data to master device. And additional, data removing will refresh
-  // the size of data in memory. This is most important thing ...
-  for (char index = 0; index < sizeofGivenBuffer; index++)
-    free(givenBuffer[index]);
-
-  // After free up top level pointer
-  free(givenBuffer);
-  givenBuffer = NULL;
-  sizeofGivenBuffer = 0;
-  indexofGivenBuffer = 0;
-
-  // -----
-
   if (sizeofData == 0 || data == NULL)
     return false;
 
@@ -316,6 +313,8 @@ bool encodeData(unsigned short sizeofData, char data[]) {
   return true;
 }
 
+// -----
+
 bool isNumeric(unsigned short sizeofData, char data[]) {
 
   if (sizeofData == 0 || data == NULL)
@@ -343,6 +342,19 @@ bool isAlphanumeric(unsigned short sizeofData, char data[]) {
 
 void callReceivedFunction(unsigned short indexofFunction, unsigned short sizeofData, char data[]) {
 
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  for (char index = 0; index < sizeofGivenBuffer; index++)
+    free(givenBuffer[index]);
+
+  // After free up top level pointer
+  free(givenBuffer);
+  givenBuffer = NULL;
+  sizeofGivenBuffer = 0;
+  indexofGivenBuffer = 0;
+
   switch (indexofFunction) {
     case 0:
       getVendors(sizeofData, data);
@@ -361,32 +373,39 @@ void callReceivedFunction(unsigned short indexofFunction, unsigned short sizeofD
 
 void getVendors(unsigned short sizeofData, char data[]) {
 
+  // Notify user about available memory
+  Serial.print("[Available memory: ");
+  Serial.print(freeMemory());
+  Serial.print("] ");
+
   // Notify users
   Serial.print("Done! ");
   Serial.print(__func__);
   Serial.println(" function triggered.");
 
-  char* delimiterBuffer = "";
-  char* resultBuffer[] = {DEVICE_BRAND, DEVICE_MODEL, DEVICE_VERSION};
-  char* result = Serialization.encode(2, delimiterBuffer, 3, resultBuffer);
+  char *delimiterBuffer = "";
+  char *resultBuffer[] = {DEVICE_BRAND, DEVICE_MODEL, DEVICE_VERSION};
+  char *result = Serialization.encode(2, delimiterBuffer, 3, resultBuffer);
   encodeData(strlen(result), result);
 }
 
 void getFunctionList(unsigned short sizeofData, char data[]) {
 
+  // Notify user about available memory
+  Serial.print("[Available memory: ");
+  Serial.print(freeMemory());
+  Serial.print("] ");
+
   // Notify users
   Serial.print("Done! ");
   Serial.print(__func__);
   Serial.println(" function triggered.");
 
-  char* delimiterBuffer = "";
-  char* resultBuffer[] = {functionList[0],
-                          returnList[0],
-                          listenList[0],
-                          functionList[1],
-                          returnList[1],
-                          listenList[1]
+  char *delimiterBuffer = "";
+  char *resultBuffer[] = {functionList[2],
+                          returnList[2],
+                          listenList[2]
                          };
-  char* result = Serialization.encode(5, delimiterBuffer, 6, resultBuffer);
+  char *result = Serialization.encode(2, delimiterBuffer, 3, resultBuffer);
   encodeData(strlen(result), result);
 }
