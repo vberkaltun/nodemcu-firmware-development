@@ -143,15 +143,15 @@ void connectedSlaves(uint8_t data[], byte sizeofData) {
   // Register these device(s) to system, after continue what you do
   for (unsigned short index = 0; index < sizeofData; index++) {
 
-    // Free up out-of-date buffer data
-    receivedBuffer[0] = '\0';
-    sizeofReceivedBuffer = 0;
-
     // Register last added device to system
     for (unsigned short subindex = 0; subindex < sizeofFunctionList; subindex++) {
 
+      char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
+      char *resultBuffer[] = {functionList[subindex], "NULL"};
+      char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
+
       // Write internal function list to connected device, one-by-one
-      writeData(data[index], functionList[subindex]);
+      writeData(data[index], result);
 
       // We will do this till decoding will return false
       while (true) {
@@ -240,8 +240,6 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
   }
 }
 
-// -----
-
 void unknownEvent(unsigned short sizeofData, char data[]) {
 
   // Notify user
@@ -258,17 +256,14 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
 
 // -----
 
-bool writeData(char address, char data[]) {
+bool writeData(char address, char *data) {
 
-  // Free up out-of-date buffer data
-  // We made it twice, This one is for top level clearing
+  // Free up out-of-date buffer data, top level clearing
   receivedBuffer[0] = '\0';
   sizeofReceivedBuffer = 0;
 
-  char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
-  char *resultBuffer[] = {data, "NULL"};
-  char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
-  encodeData(strlen(result), result);
+  // Encode given data for bus communication
+  encodeData(strlen(data), data);
 
   // Send all remainder data to newly registered slave
   while (indexofGivenBuffer < sizeofGivenBuffer) {
