@@ -104,8 +104,8 @@ void setup() {
   MasterScanner.onDisconnectedSlaves(disconnectedSlaves);
 
   // Attach functions to lib and after run main lib
-  TimerQueue.attach(scanSlave, (unsigned long)250);
-  TimerQueue.attach(listenFunction, (unsigned long)100);
+  TimerQueue.attach(scanSlave, (unsigned long)1000);
+  TimerQueue.attach(listenFunction, (unsigned long)10);
   TimerQueue.start();
 }
 
@@ -203,7 +203,7 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
   // Disconnected device. When we find it, We will delete index of this
   // Device, and after we will add all temporarily popped device again
   // If disconnected count is equal to size of device data, delete all
-  if (sizeofData == deviceList.size())
+  if (sizeofData >= deviceList.size())
     deviceList.clear();
   else {
 
