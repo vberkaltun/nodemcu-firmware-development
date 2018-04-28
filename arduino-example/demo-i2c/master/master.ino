@@ -175,6 +175,11 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
   else {
 
     for (unsigned short index = 0; index < sizeofData; index++) {
+
+      // Just to be on the safe side, check that queue is empty or not
+      if (deviceList.size() == 0)
+        break;
+
       if (data[index] == deviceList[0].address) {
         deviceList.popFront();
         continue;
