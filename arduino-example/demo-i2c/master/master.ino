@@ -489,19 +489,19 @@ bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
     sprintf(internalData0, "%s", data[index]);
     unsigned short sizeofInternalData0 = strlen(internalData0);
     if (!isAlphanumeric(sizeofInternalData0, internalData0))
-      break;
+      continue;
 
     char internalData1[BUFFER_SIZE];
     sprintf(internalData1, "%s", data[index + 1]);
     unsigned short sizeofInternalData1 = strlen(internalData1);
     if (!isNumeric(sizeofInternalData1, internalData1))
-      break;
+      continue;
 
     char internalData2[BUFFER_SIZE];
     sprintf(internalData2, "%s", data[index + 2]);
     unsigned short sizeofInternalData2 = strlen(internalData2);
     if (!isNumeric(sizeofInternalData2, internalData2))
-      break;
+      continue;
 
     // -----
 
