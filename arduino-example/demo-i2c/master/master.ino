@@ -614,7 +614,8 @@ bool encodeData(unsigned short sizeofData, char data[]) {
   // Last stored data to master device. And additional, data removing will refresh
   // the size of data in memory. This is most important thing ...
   for (char index = 0; index < sizeofGivenBuffer; index++)
-    givenBuffer[index][0] = '\0';
+    for (char subindex = 0; subindex < BUFFER_SIZE; subindex++)
+      givenBuffer[index][subindex] = '\0';
 
   sizeofGivenBuffer = 0;
   indexofGivenBuffer = 0;
