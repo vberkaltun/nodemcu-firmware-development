@@ -104,8 +104,8 @@ void setup() {
   MasterScanner.onDisconnectedSlaves(disconnectedSlaves);
 
   // Attach functions to lib and after run main lib
-  TimerQueue.attach(scanSlave, (unsigned long)1000);
-  TimerQueue.attach(requestData, (unsigned long)250);
+  TimerQueue.attach(scanSlave, (unsigned long)250);
+  TimerQueue.attach(listenFunction, (unsigned long)100);
   TimerQueue.start();
 }
 
@@ -121,7 +121,7 @@ void scanSlave() {
   MasterScanner.scanSlaves();
 }
 
-void requestData() {
+void listenFunction() {
 }
 
 void connectedSlaves(uint8_t data[], byte sizeofData) {
@@ -148,7 +148,40 @@ void connectedSlaves(uint8_t data[], byte sizeofData) {
     sizeofReceivedBuffer = 0;
 
     // Register last added device to system
-    registerNewDevice(data[index]);
+    for (unsigned short subindex = 0; subindex < sizeofFunctionList; subindex++) {
+
+      // Write internal function list to connected device, one-by-one
+      writeData(data[index], functionList[subindex]);
+
+      // We will do this till decoding will return false
+      while (true) {
+
+        // More info was given at inside of this function
+        // Actually, that's not worst case
+        if (!readData(data[index]))
+          break;
+
+        // IMPORTANT NOTICE: At the here, We are making output control.
+        // The code that given at above changes global flag output(s). So,
+        // For next operations, We need to check this output(s) and in this
+        // Way detect our current status
+        if (communicationFlag != Continue)
+          break;
+      }
+
+      // If it is still IDLE, that's mean data is corrupted (Not END)
+      if (communicationFlag == Idle) {
+        unknownEvent(sizeofReceivedBuffer, receivedBuffer);
+        break;
+      }
+
+      // IMPORTANT NOTICE: Final point, If we can arrive there, that's mean
+      // Bus communication is OK but inside data is unknown. At the next code,
+      // We will try to decode our inside data. If we can not do it, we will
+      // Add this unknown device as BLOCKED to system
+      if (!fillConfigurationData(subindex, data[index]))
+        break;
+    }
   }
 }
 
@@ -196,7 +229,7 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
           // Disconnected device. For now, We can not delete it directly. Because
           // Of this for solving this, firstly we will clone first item to there,
           // Secondly delete this first item from queue.
-          copyConfigofNewDevice(0, subindex);
+          copyConfigurationData(0, subindex);
           deviceList.popFront();
 
           // We found, stop the current session
@@ -206,6 +239,8 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
     }
   }
 }
+
+// -----
 
 void unknownEvent(unsigned short sizeofData, char data[]) {
 
@@ -223,69 +258,74 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
 
 // -----
 
-void registerNewDevice(char address) {
+bool writeData(char address, char data[]) {
 
-  for (unsigned short index = 0; index < sizeofFunctionList; index++) {
+  // Free up out-of-date buffer data
+  // We made it twice, This one is for top level clearing
+  receivedBuffer[0] = '\0';
+  sizeofReceivedBuffer = 0;
 
-    // Free up out-of-date buffer data
-    // We made it twice, This one is for top level clearing
-    receivedBuffer[0] = '\0';
-    sizeofReceivedBuffer = 0;
+  char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
+  char *resultBuffer[] = {data, "NULL"};
+  char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
+  encodeData(strlen(result), result);
 
-    char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
-    char *resultBuffer[] = {functionList[index], "NULL"};
-    char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
-    encodeData(strlen(result), result);
+  // Send all remainder data to newly registered slave
+  while (indexofGivenBuffer < sizeofGivenBuffer) {
+    Wire.beginTransmission(address);
+    Wire.write(givenBuffer[indexofGivenBuffer++]);
+    Wire.endTransmission();
 
-    // Send all remainder data to newly registered slave
-    while (indexofGivenBuffer < sizeofGivenBuffer) {
-      Wire.beginTransmission(address);
-      Wire.write(givenBuffer[indexofGivenBuffer++]);
-      Wire.endTransmission();
-
-      // Maybe not need, right?
-      delay(10);
-    }
-
-    // IMPORTANT NOTICE: Due to decoding of slave device, we need to Wait
-    // A little bit. Otherwise, Master device will request data From slave
-    // Device too early and slave cannot send it
-    delay(100);
-
-    // -----
-
-    // We will do this till decoding will return false
-    while (true) {
-
-      // More info was given at inside of this function
-      // Actually, that's not worst case
-      if (!requestConfigofNewDevice(address))
-        break;
-
-      // IMPORTANT NOTICE: At the here, We are making output control.
-      // The code that given at above changes global flag output(s). So,
-      // For next operations, We need to check this output(s) and in this
-      // Way detect our current status
-      if (communicationFlag != Continue)
-        break;
-    }
-
-    // If it is still IDLE, that's mean data is corrupted (Not END)
-    if (communicationFlag == Idle) {
-      unknownEvent(sizeofReceivedBuffer, receivedBuffer);
-      break;
-    }
-
-    // IMPORTANT NOTICE: Final point, If we can arrive there, that's mean
-    // Bus communication is OK but inside data is unknown. At the next code,
-    // We will try to decode our inside data. If we can not do it, we will
-    // Add this unknown device as BLOCKED to system
-    if (!fillConfigofNewDevice(index, address))
-      break;
+    // Maybe not need, right?
+    delay(10);
   }
+
+  // IMPORTANT NOTICE: Due to decoding of slave device, we need to Wait
+  // A little bit. Otherwise, Master device will request data From slave
+  // Device too early and slave cannot send it
+  delay(100);
+
+  // If everything goes well, we will arrive here and return true
+  return true;
 }
 
-void copyConfigofNewDevice(char fromAddress, char toAddress) {
+bool readData(char address) {
+
+  unsigned short indexofNewReceivedBuffer = 0;
+  char newReceivedBuffer[BUFFER_SIZE];
+
+  // Request data from slave
+  Wire.requestFrom(address, BUFFER_SIZE);
+  while (Wire.available()) {
+
+    // Store new received data at the here
+    char currentBuffer = Wire.read();
+    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)currentBuffer;
+
+    // Don't forget to add end-of-line char to end
+    if (currentBuffer == (char)PROTOCOL_DELIMITERS[2]) {
+      newReceivedBuffer[indexofNewReceivedBuffer] = '\0';
+      break;
+    }
+
+    // Maybe not need, right?
+    delay(10);
+  }
+
+  // Decode last given data
+  if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
+    return false;
+
+  // IMPORTANT NOTICE: Actually When we arrived this point, we arrived
+  // Worst case point even though It was TRUE. If you came there, program will
+  // Run till communication flag will be END or IDLE type. Otherwise, this
+  // Point is related with CONTINUE status
+  return true;
+}
+
+// -----
+
+void copyConfigurationData(char fromAddress, char toAddress) {
 
   // Worst case, We do not have another solution
   for (unsigned short index = 0; index < BUFFER_SIZE; index++) {
@@ -333,38 +373,7 @@ void copyConfigofNewDevice(char fromAddress, char toAddress) {
   deviceList[toAddress].address = deviceList[fromAddress].address;
 }
 
-bool requestConfigofNewDevice(char address) {
-
-  unsigned short indexofNewReceivedBuffer = 0;
-  char newReceivedBuffer[BUFFER_SIZE];
-
-  // Request data from slave
-  Wire.requestFrom(address, BUFFER_SIZE);
-  while (Wire.available()) {
-
-    // Store new received data at the here
-    char currentBuffer = Wire.read();
-    newReceivedBuffer[indexofNewReceivedBuffer++] =  (char)currentBuffer;
-
-    // Don't forget to add end-of-line char to end
-    if (currentBuffer == (char)PROTOCOL_DELIMITERS[2]) {
-      newReceivedBuffer[indexofNewReceivedBuffer] = '\0';
-      break;
-    }
-  }
-
-  // Decode last given data
-  if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
-    return false;
-
-  // IMPORTANT NOTICE: Actually When we arrived this point, we arrived
-  // Worst case point even though It was TRUE. If you came there, program will
-  // Run till communication flag will be END or IDLE type. Otherwise, this
-  // Point is related with CONTINUE status
-  return true;
-}
-
-bool fillConfigofNewDevice(unsigned short index, char address) {
+bool fillConfigurationData(unsigned short index, char address) {
 
   // IMPORTANT NOTICE: Before decoding inside data, we need firstly
   // Calculate count of data delimiter. This result gives us that how
@@ -387,7 +396,7 @@ bool fillConfigofNewDevice(unsigned short index, char address) {
       if (!fillVendorData(address, countofCharacter, newReceivedBuffer))
         return false;
 
-      // Notify users
+      // Notify user
       Serial.print("Done! The vendors of [0x");
       Serial.print(address, HEX);
       Serial.println("] address were saved successfully to system.");
@@ -399,19 +408,18 @@ bool fillConfigofNewDevice(unsigned short index, char address) {
       Serial.print("\t VERSION: ");
       Serial.println(deviceList[0].vendorList.Version);
       Serial.println("\t ---");
-
       break;
 
     case 1:
       if (!fillFunctionData(address, countofCharacter, newReceivedBuffer))
         return false;
 
+      // Notify user
       for (unsigned short index = 0; index < deviceList[0].functionList.size(); index++) {
         Serial.print("\t FUNCTION: ");
         Serial.println(deviceList[0].functionList[index].Name);
       }
       Serial.println("\t ---");
-
       break;
 
     default:
