@@ -4,6 +4,10 @@
 #include <MasterScanner.h>
 #include <TimerQueue.h>
 
+#include <PubSubClient.h>
+#include <ESP8266WiFi.h>
+#include <ArduinoOTA.h>
+
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
 // That's mean, all function will use this delimiter constant on
