@@ -12,10 +12,6 @@
 #define DEVICE_MODEL "BCM_43142"
 #define DEVICE_VERSION "VER_1.0.0"
 
-// IMPORTANT NOTICE: Do not change this variable
-// Thus, 0x03 index was reserved for bus address of device
-#define EEPROM_ADDRESS 0x03
-
 // IMPORTANT NOTICE: On I2C bus, You can send up to 32 bits on
 // Each transmission. Therefore, if there is more data than 32 bits
 // We should split it. Then we can send our data to master
