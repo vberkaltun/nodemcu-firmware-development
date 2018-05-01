@@ -8,6 +8,13 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
 
+// IMPORTANT NOTICE: These all constant is related with your MQTT
+// Protocol, SSID of internet and PASSWORD of ypur internet. At the
+// Here, we are using local server (server type is MOSQUITTO)
+#define MQTT_SERVER "192.168.1.105"
+#define MQTT_SSID "iot.test"
+#define MQTT_PASSWORD "12345678"
+
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
 // That's mean, all function will use this delimiter constant on
@@ -88,6 +95,13 @@ char sizeofFunctionList = 2;
 char *functionList[] = {"getVendors",
                         "getFunctionList"
                        };
+
+// -----
+
+// MQTT client objects, required for MQTT
+void callBack(char* topic, byte* payload, unsigned int length);
+WiFiClient wifiClient;
+PubSubClient mqttClient(MQTT_SERVER, 1883, callBack, wifiClient);
 
 void setup() {
 
