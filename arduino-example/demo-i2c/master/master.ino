@@ -8,9 +8,9 @@
 // As you can see, this protocol delimiter was declared in this scope
 // That's mean, all function will use this delimiter constant on
 // Communication between two or more devices
-#define DEVICE_BRAND "Broadcom_Incorporated"
-#define DEVICE_MODEL "BCM_43142"
-#define DEVICE_VERSION "VER_1.0.0"
+#define DEVICE_BRAND "intelliPWR Incorporated"
+#define DEVICE_MODEL "MasterCore X.1"
+#define DEVICE_VERSION "VER 1.0.0"
 
 // IMPORTANT NOTICE: On I2C bus, You can send up to 32 bits on
 // Each transmission. Therefore, if there is more data than 32 bits
