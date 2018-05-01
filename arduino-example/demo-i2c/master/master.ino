@@ -87,10 +87,8 @@ char *functionList[] = {"getVendors",
 
 void setup() {
 
-  // Initialize communication on serial protocol
+  // Initialize communication on wire and serial protocol
   Serial.begin(9600);
-
-  // Initialize communication on Wire protocol
   Wire.begin(D1, D2);
 
   // IMPORTANT NOTICE: Due to our I2C scanner lib, When a new device
@@ -100,7 +98,7 @@ void setup() {
   MasterScanner.onDisconnectedSlaves(disconnectedSlaves);
 
   // Attach functions to lib and after run main lib
-  TimerQueue.attach(scanSlave, (unsigned long)1000);
+  TimerQueue.attach(listenSlave, (unsigned long)1000);
   TimerQueue.attach(listenFunction, (unsigned long)10);
   TimerQueue.start();
 }
@@ -113,7 +111,7 @@ void loop() {
   TimerQueue.loop();
 }
 
-void scanSlave() {
+void listenSlave() {
   MasterScanner.scanSlaves();
 }
 
@@ -191,7 +189,7 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
     Serial.print("\t ID: 0x");
     Serial.println(data[index], HEX);
   }
-  Serial.println("\t ");
+  Serial.println("\t ---");
 
   // -----
 
@@ -213,6 +211,7 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
         deviceList.popFront();
         continue;
       }
+
       if (data[index] == deviceList[deviceList.size() - 1].address) {
         deviceList.popBack();
         continue;
@@ -221,10 +220,10 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
       for (unsigned short subindex = 1; subindex < deviceList.size() - 1; subindex++) {
         if (deviceList[subindex].address == data[index]) {
 
-          // IMPORTANT NOTICE: In this func, we are making deleting about
+          // IMPORTANT NOTICE: In this func, we are deleting information about
           // Disconnected device. For now, We can not delete it directly. Because
-          // Of this for solving this, firstly we will clone first item to there,
-          // Secondly delete this first item from queue.
+          // Of this, for solving this, firstly we will clone first item to there
+          // Secondly we will delete this first item from queue
           copyConfigurationData(0, subindex);
           deviceList.popFront();
 
