@@ -109,6 +109,16 @@ void setup() {
   Serial.begin(9600);
   Wire.begin(D1, D2);
 
+  // A name given to your ESP8266 module when discovering it as a port in ARDUINO IDE
+  ArduinoOTA.setHostname(DEVICE_MODEL);
+  ArduinoOTA.begin();
+
+  // Start wifi subsystem
+  WiFi.begin(MQTT_SSID, MQTT_PASSWORD);
+  connectWiFi();
+
+  // -----
+
   // IMPORTANT NOTICE: Due to our I2C scanner lib, When a new device
   // Connected or disconnected to master, our I2C scanner lib decides
   // Which one is to be triggered
@@ -118,6 +128,7 @@ void setup() {
   // Attach functions to lib and after run main lib
   TimerQueue.attach(listenSlave, (unsigned long)1000);
   TimerQueue.attach(listenFunction, (unsigned long)10);
+  TimerQueue.attach(listenWiFi, (unsigned long)20);
   TimerQueue.start();
 }
 
@@ -265,6 +276,35 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
   // At the end, free up out-of-date buffer data
   receivedBuffer[0] = '\0';
   sizeofReceivedBuffer = 0;
+}
+
+// -----
+
+void callBack(char* topic, byte* payload, unsigned int length) {
+}
+
+void connectWiFi() {
+
+  // Attempt to connect to the wifi if connection is lost
+  if (WiFi.status() != WL_CONNECTED) {
+
+    // Notify user
+    Serial.print("Connecting to <");
+    Serial.print(MQTT_SSID);
+    Serial.print("> ...");
+
+    // Loop while we wait for connection
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+
+    // Notify user
+    Serial.println("");
+    Serial.print("Done! WiFi connection is OK. IP address was given as <");
+    Serial.print(WiFi.localIP());
+    Serial.println(">.");
+  }
 }
 
 // -----
