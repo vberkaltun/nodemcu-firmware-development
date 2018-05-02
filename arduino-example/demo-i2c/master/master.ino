@@ -145,6 +145,73 @@ void listenSlave() {
 }
 
 void listenFunction() {
+
+  // IMPORTANT NOTICE: Device registering is more priority than others
+  // Step, When new device(s) were connected to master device, firstly
+  // Register these device(s) to system, after continue what you do
+  for (unsigned short index = 0; index < deviceList.size(); index++) {
+
+    // If current index is empty, go next
+    if (deviceList[index].functionList.size() == 0)
+      continue;
+
+    // If handshake is not ok, that's mean probably function is also not ok
+    if (deviceList[index].handshake != Ready)
+      continue;
+
+    // Listen functions on connected device(s)
+    for (unsigned short subindex = 0; subindex < deviceList[index].functionList.size(); subindex++) {
+
+      if (!deviceList[index].functionList[subindex].Request)
+        continue;
+
+      // Store func name at here, we can not use it directly
+      char internalData[BUFFER_SIZE];
+      sprintf(internalData, "%s", deviceList[index].functionList[subindex].Name);
+
+      char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
+      char *resultBuffer[] = {internalData, "NULL"};
+      char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
+
+      // Write internal function list to connected device, one-by-one
+      writeData(deviceList[index].address, result);
+
+      // We will do this till decoding will return false
+      while (true) {
+
+        // More info was given at inside of this function
+        // Actually, that's not worst case
+        if (!readData(deviceList[index].address))
+          break;
+
+        // IMPORTANT NOTICE: At the here, We are making output control.
+        // The code that given at above changes global flag output(s). So,
+        // For next operations, We need to check this output(s) and in this
+        // Way detect our current status
+        if (communicationFlag != Continue)
+          break;
+      }
+
+      // If it is still IDLE, that's mean data is corrupted (Not END)
+      if (communicationFlag == Idle) {
+        unknownEvent(sizeofReceivedBuffer, receivedBuffer);
+        break;
+      }
+    }
+  }
+}
+
+void listenWiFi() {
+
+  // Reconnect if connection is lost
+  if (!mqttClient.connected() && WiFi.status() == 3)
+    connectWiFi();
+
+  // Maintain MQTT connection
+  mqttClient.loop();
+
+  // Allow Wi-Fi functions to run
+  ArduinoOTA.handle();
 }
 
 // -----
