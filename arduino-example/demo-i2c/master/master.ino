@@ -8,10 +8,10 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
 
-// IMPORTANT NOTICE: These all constant is related with your MQTT
-// Protocol, SSID of internet and PASSWORD of ypur internet. At the
-// Here, we are using local server (server type is MOSQUITTO)
 #define MQTT_SERVER "192.168.1.105"
+// IMPORTANT NOTICE: These all constant is related with your
+// MQTT server and WiFi protocol. In additional, at the here, we are
+// Using cloudMQTT server for communication
 #define WIFI_SSID "iot.test"
 #define WIFI_PASSWORD "12345678"
 
@@ -20,7 +20,7 @@
 // That's mean, all function will use this delimiter constant on
 // Communication between two or more devices
 #define DEVICE_BRAND "intelliPWR Incorporated"
-#define DEVICE_MODEL "MasterCoreX.1"
+#define DEVICE_MODEL "MasterCore.X1"
 #define DEVICE_VERSION "VER 1.0.0"
 
 // IMPORTANT NOTICE: On I2C bus, You can send up to 32 bits on
