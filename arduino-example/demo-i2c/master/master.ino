@@ -12,8 +12,8 @@
 // Protocol, SSID of internet and PASSWORD of ypur internet. At the
 // Here, we are using local server (server type is MOSQUITTO)
 #define MQTT_SERVER "192.168.1.105"
-#define MQTT_SSID "iot.test"
-#define MQTT_PASSWORD "12345678"
+#define WIFI_SSID "iot.test"
+#define WIFI_PASSWORD "12345678"
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
@@ -114,7 +114,7 @@ void setup() {
   ArduinoOTA.begin();
 
   // Start wifi subsystem
-  WiFi.begin(MQTT_SSID, MQTT_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   connectWiFi();
 
   // -----
@@ -421,7 +421,7 @@ void connectWiFi() {
 
     // Notify user
     Serial.print("Connecting to <");
-    Serial.print(MQTT_SSID);
+    Serial.print(WIFI_SSID);
     Serial.print("> ...");
 
     // Loop while we wait for connection
