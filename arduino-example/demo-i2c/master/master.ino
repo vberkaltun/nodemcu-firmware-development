@@ -20,7 +20,7 @@
 // That's mean, all function will use this delimiter constant on
 // Communication between two or more devices
 #define DEVICE_BRAND "intelliPWR Incorporated"
-#define DEVICE_MODEL "MasterCore X.1"
+#define DEVICE_MODEL "MasterCoreX.1"
 #define DEVICE_VERSION "VER 1.0.0"
 
 // IMPORTANT NOTICE: On I2C bus, You can send up to 32 bits on
@@ -147,6 +147,8 @@ void listenSlave() {
 void listenFunction() {
 }
 
+// -----
+
 void connectedSlaves(uint8_t data[], byte sizeofData) {
 
   Serial.print("Done! ");
@@ -264,6 +266,8 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
   }
 }
 
+// -----
+
 void unknownEvent(unsigned short sizeofData, char data[]) {
 
   // Notify user
@@ -305,6 +309,10 @@ void connectWiFi() {
     Serial.print(WiFi.localIP());
     Serial.println(">.");
   }
+
+  // If we are not connected to server, try to connect server
+  if (!mqttClient.connected())
+    mqttClient.connect((char*) DEVICE_MODEL);
 }
 
 // -----
