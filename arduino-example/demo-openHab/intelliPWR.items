@@ -1,0 +1,94 @@
+Logical1_Switch_Status 					{mqtt=""}
+Logical2_Switch_Status					{mqtt=""}
+
+
+
+
+Led1_Color_Status					{mqtt=""}
+Led1_Switch_Status					{mqtt=""}
+Led1_Selection_Status					{mqtt=""}
+
+
+
+
+Led2_Color_Status					{mqtt=""}
+Led2_Switch_Status					{mqtt=""}
+Led2_Selection_Status					{mqtt=""}
+
+
+
+
+Manuel1_Switch_Status					{mqtt=""}
+Manuel1_Switch_Status					{mqtt=""}
+
+
+
+
+Mod_Switch_Status					{mqtt=""}
+Mod_Selection_Status					{mqtt=""}
+Mod_Slider_Status					{mqtt=""}
+
+
+
+
+Aircon_Power_Switch_Status				{mqtt=""}
+Environment_Power_Switch_Status				{mqtt=""}
+Location_Power_Switch_Status				{mqtt=""}
+Rain_Power_Switch_Status				{mqtt=""}
+Weather_Power_Switch_Status				{mqtt=""}
+
+
+
+
+Aircon_Switch_Status					{mqtt=""}
+Aircon_Slider_Status					{mqtt=""}
+	Aircon_Brand					{mqtt=""}
+	Aircon_Model					{mqtt=""}
+	Aircon_Version					{mqtt=""}
+
+
+
+
+InPressure_Text						{mqtt=""}
+InTemperature_Text					{mqtt=""}
+InHumidity_Text						{mqtt=""}
+	Environment_Brand				{mqtt=""}
+	Environment_Model				{mqtt=""}
+	Environment_Version				{mqtt=""}
+
+
+
+
+Sunrise_Text						{mqtt=""}
+Sunset_Text						{mqtt=""}
+Latitude_Text						{mqtt=""}
+Longitude_Text						{mqtt=""}
+Location_Selection_Status_In				{mqtt=""}
+Location_Selection_Status_Out
+	Location_Brand					{mqtt=""}
+	Location_Model					{mqtt=""}
+	Location_Version				{mqtt=""}
+
+
+
+
+Rain_Text						{mqtt=""}
+Rain_Switch_Status					{mqtt=""}
+Rain_Setpoint_Status_In					{mqtt=""}
+Rain_Selection_Status_Out				{mqtt=""}
+	Rain_Brand					{mqtt=""}
+	Rain_Model					{mqtt=""}
+	Rain_Version					{mqtt=""}
+
+
+
+
+Pollution_Text						{mqtt=""}
+Propan_Text						{mqtt=""}
+Metan_Text						{mqtt=""}
+Weather_Switch_Status					{mqtt=""}
+Weather_Setpoint_Status_In				{mqtt=""}
+Weather_Selection_Status_Out				{mqtt=""}
+	Weather_Brand					{mqtt=""}
+	Weather_Model					{mqtt=""}
+	Weather_Version					{mqtt=""}
