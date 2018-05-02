@@ -273,6 +273,11 @@ void connectedSlaves(uint8_t data[], byte sizeofData) {
       // Add this unknown device as BLOCKED to system
       if (!fillConfigurationData(subindex, data[index]))
         break;
+
+      // -----
+
+      // Subscribe all function of current slave to MQTT broker
+      subscribeTopic(data[index], true);
     }
   }
 }
@@ -286,6 +291,9 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
   for (unsigned short index = 0; index < sizeofData; index++) {
     Serial.print("\t ID: 0x");
     Serial.println(data[index], HEX);
+
+    // Unsubscribe all function of current slave to MQTT broker
+    subscribeTopic(data[index], false);
   }
   Serial.println("\t ---");
 
@@ -349,7 +357,59 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
   sizeofReceivedBuffer = 0;
 }
 
-// -----
+bool subscribeTopic(char address, bool type) {
+
+  // Make sure we are connected to WIFI before attemping to reconnect to MQTT
+  if (WiFi.status() != WL_CONNECTED)
+    return false;
+
+  // Make sure we are connected to the MQTT server
+  if (!mqttClient.connected())
+    return false;
+
+  // -----
+
+  // When we found given device in device list, generate MQTT vendor(s)
+  for (unsigned short index = 0; index < deviceList.size(); index++) {
+    if (address == deviceList[index].address) {
+
+      // Store func name at here, we can not use it directly
+      char internalData[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
+      sprintf(internalData, "0x%2x", address);
+
+      char *encodeDelimiter = generateDelimiterBuffer("/", 2);
+      char *resultBuffer[] = {DEVICE_MODEL, internalData};
+      char *result = Serialization.encode(2, encodeDelimiter, 2, resultBuffer);
+
+      // Looking good, inline if-loop
+      type ? mqttClient.subscribe(result) : mqttClient.unsubscribe(result);
+      mqttClient.publish(result, type ? "1" : "0");
+
+      // -----
+
+      for (unsigned short subindex = 0; subindex < deviceList[index].functionList.size(); subindex++) {
+
+        // Store func name at here, we can not use it directly
+        char subInternalData0[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
+        sprintf(subInternalData0, "0x%2x", deviceList[index].address);
+
+        // Store address at here, we can not use it directly
+        char subInternalData1[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
+        sprintf(subInternalData1, "%s", deviceList[index].functionList[subindex].Name);
+
+        char *subEncodeDelimiter = generateDelimiterBuffer("/", 3);
+        char *subResultBuffer[] = {DEVICE_MODEL, subInternalData0, subInternalData1};
+        char *subResult = Serialization.encode(3, subEncodeDelimiter, 3, subResultBuffer);
+
+        // Looking good, inline if-loop
+        type ? mqttClient.subscribe(subResult) : mqttClient.unsubscribe(subResult);
+      }
+
+      // Do not need to search all data, we are OK now
+      break;
+    }
+  }
+}
 
 void callBack(char* topic, byte* payload, unsigned int length) {
 }
