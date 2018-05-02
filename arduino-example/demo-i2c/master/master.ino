@@ -8,12 +8,15 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
 
-#define MQTT_SERVER "192.168.1.105"
 // IMPORTANT NOTICE: These all constant is related with your
 // MQTT server and WiFi protocol. In additional, at the here, we are
 // Using cloudMQTT server for communication
-#define WIFI_SSID "iot.test"
-#define WIFI_PASSWORD "12345678"
+#define MQTT_USER "XXXXXXXXXX"
+#define MQTT_PASSWORD "XXXXXXXXXX"
+#define MQTT_SERVER "XXXXXXXXXX"
+#define MQTT_PORT 0000000000
+#define WIFI_SSID "XXXXXXXXXX"
+#define WIFI_PASSWORD "XXXXXXXXXX"
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
@@ -101,7 +104,7 @@ char *functionList[] = {"getVendors",
 // MQTT client objects, required for MQTT
 void callBack(char* topic, byte* payload, unsigned int length);
 WiFiClient wifiClient;
-PubSubClient mqttClient(MQTT_SERVER, 1883, callBack, wifiClient);
+PubSubClient mqttClient(MQTT_SERVER, MQTT_PORT, callBack, wifiClient);
 
 void setup() {
 
@@ -439,7 +442,7 @@ void connectWiFi() {
 
   // If we are not connected to server, try to connect server
   if (!mqttClient.connected())
-    mqttClient.connect((char*) DEVICE_MODEL);
+    mqttClient.connect((char*) DEVICE_MODEL, MQTT_USER, MQTT_PASSWORD);
 }
 
 // -----
