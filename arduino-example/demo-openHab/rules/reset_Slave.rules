@@ -8,33 +8,58 @@ rule "reset_Aircon_Power_Switch"
 	when
 		Item Aircon_isConnected changed
 	then
-		sendCommand(Aircon_Power_Switch,OFF)
+		if (Aircon_isConnected.state == OFF)
+			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
+		else
+			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt eklendi!")
+
+		sendCommand(Aircon_Power_Switch, OFF)
 	end
 
 rule "reset_Environment_Power_Switch"
 	when
 		Item Environment_isConnected changed
 	then
-		sendCommand(Environment_Power_Switch,OFF)
+		if (Environment_isConnected.state == OFF)
+			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
+		else
+			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt bağlandı!")
+
+		sendCommand(Environment_Power_Switch, OFF)
 	end
 
 rule "reset_Location_Power_Switch"
 	when
 		Item Location_isConnected changed
 	then
-		sendCommand(Location_Power_Switch,OFF)
+		if (Location_isConnected.state == OFF)
+			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
+		else
+			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt eklendi!")
+
+		sendCommand(Location_Power_Switch, OFF)
 	end
 
 rule "reset_Rain_Power_Switch"
 	when
 		Item Rain_isConnected changed
 	then
-		sendCommand(Rain_Power_Switch,OFF)
+		if (Rain_isConnected.state == OFF)
+			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
+		else
+			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt eklendi!")
+
+		sendCommand(Rain_Power_Switch, OFF)
 	end
 
 rule "reset_Weather_Power_Switch"
 	when
 		Item Weather_isConnected changed
 	then
-		sendCommand(Weather_Power_Switch,OFF)
+		if (Weather_isConnected.state == OFF)
+			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
+		else
+			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt eklendi!")
+
+		sendCommand(Weather_Power_Switch, OFF)
 	end
