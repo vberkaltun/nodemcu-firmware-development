@@ -9,7 +9,7 @@ rule "check_Logical_Switch"
 		Item Logical1_isConnected changed or 
 		Item Logical2_isConnected changed
 	then
-		if(Logical1_isConnected.state == OFF)
+		if (Logical1_isConnected.state == OFF)
 			if (Logical2_isConnected.state == OFF)
 				sendCommand(Logical_Switch_Check,OFF)
 			else

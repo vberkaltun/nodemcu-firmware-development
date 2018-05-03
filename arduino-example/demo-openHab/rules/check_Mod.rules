@@ -10,9 +10,9 @@ rule "check_Mod_Switch"
 		Item Led_Switch_Check changed or 
 		Item Manuel_Switch_Check changed
 	then
-		if(Logical_Switch_Check.state == OFF) {
+		if (Logical_Switch_Check.state == OFF) {
 			if (Led_Switch_Check.state == OFF) {
-				if(Manuel_Switch_Check.state == OFF) {
+				if (Manuel_Switch_Check.state == OFF) {
 					sendCommand(Mod_Switch_Check,OFF)
 					sendCommand(Mod_Switch,OFF)
 				} else

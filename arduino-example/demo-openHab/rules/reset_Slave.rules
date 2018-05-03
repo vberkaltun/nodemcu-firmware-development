@@ -6,35 +6,35 @@
 
 rule "reset_Aircon_Power_Switch"
 	when
-		Item Aircon_isConnected changed from ON to OFF
+		Item Aircon_isConnected changed
 	then
 		sendCommand(Aircon_Power_Switch,OFF)
 	end
 
 rule "reset_Environment_Power_Switch"
 	when
-		Item Environment_isConnected changed from ON to OFF
+		Item Environment_isConnected changed
 	then
 		sendCommand(Environment_Power_Switch,OFF)
 	end
 
 rule "reset_Location_Power_Switch"
 	when
-		Item Location_isConnected changed from ON to OFF
+		Item Location_isConnected changed
 	then
 		sendCommand(Location_Power_Switch,OFF)
 	end
 
 rule "reset_Rain_Power_Switch"
 	when
-		Item Rain_isConnected changed from ON to OFF
+		Item Rain_isConnected changed
 	then
 		sendCommand(Rain_Power_Switch,OFF)
 	end
 
 rule "reset_Weather_Power_Switch"
 	when
-		Item Weather_isConnected changed from ON to OFF
+		Item Weather_isConnected changed
 	then
 		sendCommand(Weather_Power_Switch,OFF)
 	end

@@ -9,7 +9,7 @@ rule "check_Manuel_Switch"
 		Item Manuel1_isConnected changed or 
 		Item Manuel2_isConnected changed
 	then
-		if(Manuel1_isConnected.state == OFF)
+		if (Manuel1_isConnected.state == OFF)
 			if (Manuel2_isConnected.state == OFF)
 				sendCommand(Manuel_Switch_Check,OFF)
 			else

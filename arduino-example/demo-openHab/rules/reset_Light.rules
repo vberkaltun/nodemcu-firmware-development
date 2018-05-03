@@ -6,28 +6,28 @@
 
 rule "reset_Logical1_Switch"
 	when
-		Item Logical1_isConnected changed from ON to OFF
+		Item Logical1_isConnected changed
 	then
 		sendCommand(Logical1_Switch,OFF)
 	end
 
 rule "reset_Logical2_Switch"
 	when
-		Item Logical2_isConnected changed from ON to OFF
+		Item Logical2_isConnected changed
 	then
 		sendCommand(Logical2_Switch,OFF)
 	end
 
 rule "reset_Led1_Switch"
 	when
-		Item Led1_isConnected changed from ON to OFF
+		Item Led1_isConnected changed
 	then
 		sendCommand(Led1_Switch,OFF)
 	end
 
 rule "reset_Led2_Switch"
 	when
-		Item Led2_isConnected changed from ON to OFF
+		Item Led2_isConnected changed
 	then
 		sendCommand(Led2_Switch,OFF)
 	end
