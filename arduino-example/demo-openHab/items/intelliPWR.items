@@ -1,0 +1,58 @@
+// ###################################################################
+// ###################################################################
+// ### WRITTEN BY BERK ALTUN AT 03.05.2018 ###########################
+// ###################################################################
+// ###################################################################
+
+// ###################################################################
+// ### INTERNAL SWITCH ITEMS #########################################
+// ###################################################################
+
+Switch Logical1_Switch
+Switch Logical2_Switch
+Switch Led1_Switch
+Switch Led2_Switch
+Switch Manuel1_Switch
+Switch Manuel2_Switch
+Switch Mod_Switch
+
+Switch Location_Switch
+Switch Rain_Switch
+Switch Weather_Switch
+Switch Aircon_Switch
+
+// ###################################################################
+// ### LIGHT CONTROL ITEMS ###########################################
+// ###################################################################
+
+Switch Logical_Switch_Check
+Switch Led_Switch_Check
+Switch Manuel_Switch_Check
+Switch Mod_Switch_Check
+
+// ###################################################################
+// ### SWITCH STATUS ITEMS ###########################################
+// ###################################################################
+
+Switch Aircon_Power_Switch
+Switch Environment_Power_Switch
+Switch Location_Power_Switch
+Switch Rain_Power_Switch
+Switch Weather_Power_Switch
+
+// ###################################################################
+// ### SLAVE ISCONNECTED ITEMS #######################################
+// ###################################################################
+
+Switch Logical1_isConnected				{mqtt="<[mosquitto:/0x50/isConnected:command:ON:1],<[mosquitto:/0x50/isConnected:command:OFF:0]"}
+Switch Logical2_isConnected				{mqtt="<[mosquitto:/0x51/isConnected:command:ON:1],<[mosquitto:/0x51/isConnected:command:OFF:0]"}
+Switch Led1_isConnected					{mqtt="<[mosquitto:/0x52/isConnected:command:ON:1],<[mosquitto:/0x52/isConnected:command:OFF:0]"}
+Switch Led2_isConnected					{mqtt="<[mosquitto:/0x53/isConnected:command:ON:1],<[mosquitto:/0x53/isConnected:command:OFF:0]"}
+Switch Manuel1_isConnected				{mqtt="<[mosquitto:/0x54/isConnected:command:ON:1],<[mosquitto:/0x54/isConnected:command:OFF:0]"}
+Switch Manuel2_isConnected				{mqtt="<[mosquitto:/0x55/isConnected:command:ON:1],<[mosquitto:/0x55/isConnected:command:OFF:0]"}
+
+Switch Aircon_isConnected 				{mqtt="<[mosquitto:/0x45/isConnected:command:ON:1],<[mosquitto:/0x45/isConnected:command:OFF:0]"}
+Switch Environment_isConnected 				{mqtt="<[mosquitto:/0x40/isConnected:command:ON:1],<[mosquitto:/0x40/isConnected:command:OFF:0]"}
+Switch Location_isConnected 				{mqtt="<[mosquitto:/0x25/isConnected:command:ON:1],<[mosquitto:/0x25/isConnected:command:OFF:0]"}
+Switch Rain_isConnected					{mqtt="<[mosquitto:/0x35/isConnected:command:ON:1],<[mosquitto:/0x35/isConnected:command:OFF:0]"}
+Switch Weather_isConnected 				{mqtt="<[mosquitto:/0x30/isConnected:command:ON:1],<[mosquitto:/0x30/isConnected:command:OFF:0]"}

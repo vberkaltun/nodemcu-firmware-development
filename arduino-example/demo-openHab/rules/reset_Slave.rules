@@ -1,0 +1,40 @@
+// ###################################################################
+// ###################################################################
+// ### WRITTEN BY BERK ALTUN AT 03.05.2018 ###########################
+// ###################################################################
+// ###################################################################
+
+rule "reset_Aircon_Power_Switch"
+	when
+		Item Aircon_isConnected changed from ON to OFF
+	then
+		sendCommand(Aircon_Power_Switch,OFF)
+	end
+
+rule "reset_Environment_Power_Switch"
+	when
+		Item Environment_isConnected changed from ON to OFF
+	then
+		sendCommand(Environment_Power_Switch,OFF)
+	end
+
+rule "reset_Location_Power_Switch"
+	when
+		Item Location_isConnected changed from ON to OFF
+	then
+		sendCommand(Location_Power_Switch,OFF)
+	end
+
+rule "reset_Rain_Power_Switch"
+	when
+		Item Rain_isConnected changed from ON to OFF
+	then
+		sendCommand(Rain_Power_Switch,OFF)
+	end
+
+rule "reset_Weather_Power_Switch"
+	when
+		Item Weather_isConnected changed from ON to OFF
+	then
+		sendCommand(Weather_Power_Switch,OFF)
+	end

@@ -1,0 +1,19 @@
+// ###################################################################
+// ###################################################################
+// ### WRITTEN BY BERK ALTUN AT 03.05.2018 ###########################
+// ###################################################################
+// ###################################################################
+
+rule "check_Led_Switch"
+	when
+		Item Led1_isConnected changed or 
+		Item Led2_isConnected changed
+	then
+		if (Led1_isConnected.state == OFF)
+			if (Led2_isConnected.state == OFF) 
+				sendCommand(Led_Switch_Check,OFF)
+			else
+				sendCommand(Led_Switch_Check,ON)
+		else
+			sendCommand(Led_Switch_Check,ON)
+	end

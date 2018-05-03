@@ -1,0 +1,19 @@
+// ###################################################################
+// ###################################################################
+// ### WRITTEN BY BERK ALTUN AT 03.05.2018 ###########################
+// ###################################################################
+// ###################################################################
+
+rule "check_Manuel_Switch"
+	when
+		Item Manuel1_isConnected changed or 
+		Item Manuel2_isConnected changed
+	then
+		if(Manuel1_isConnected.state == OFF)
+			if (Manuel2_isConnected.state == OFF)
+				sendCommand(Manuel_Switch_Check,OFF)
+			else
+				sendCommand(Manuel_Switch_Check,ON)
+		else
+			sendCommand(Manuel_Switch_Check,ON)
+	end
