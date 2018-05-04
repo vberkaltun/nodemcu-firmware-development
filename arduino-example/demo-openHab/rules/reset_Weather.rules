@@ -1,0 +1,25 @@
+// ###################################################################
+// ###################################################################
+// ### WRITTEN BY BERK ALTUN AT 03.05.2018 ###########################
+// ###################################################################
+// ###################################################################
+
+rule "reset_Weather_Power_Switch"
+	when
+		Item Weather_isConnected changed
+	then
+		postUpdate(Weather_Power_Switch,Aircon_isConnected.state.state)
+		postUpdate(Weather_Switch,OFF)
+
+		if(Weather_isConnected.state == OFF)
+			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
+		else
+			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt bağlandı!")
+	end
+
+rule "reset_Weather_Power_Switch"
+	when
+		Item Weather_Power_Switch changed
+	then
+		postUpdate(Weather_Switch,OFF)
+	end

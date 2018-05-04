@@ -58,13 +58,14 @@ sitemap intelliPWR label="intelliPWR" {
 	Frame label="Havalandırma" visibility=[Aircon_Power_Switch==ON] {
 		Switch item=Aircon_Switch 					label="Havalandırma" 		icon="i_air-off.png"
 		Slider item=Aircon_Slider 					label="Hız" 			icon="i_speed.png" 		visibility=[Aircon_Switch==ON]
+
 	}
 
 	Frame visibility=[Aircon_Power_Switch==ON] {
-		Text item=Aircon_Info label="Özellikler" icon="i_info.png"{
-			Text item=Aircon_Brand 					label="Marka" 			icon="i_info.png"
-			Text item=Aircon_Model 					label="Model" 			icon="i_info.png"
-			Text item=Aircon_Version 				label="Versiyon" 		icon="i_info.png"
+		Text item=Aircon_Info label="Donanım [%s]" icon="i_info.png"{
+			Text item=Aircon_Brand 					label="Marka [%s]" 		icon="i_info.png"
+			Text item=Aircon_Model 					label="Model [%s]" 		icon="i_info.png"
+			Text item=Aircon_Version 				label="Versiyon [%s]" 		icon="i_info.png"
 		}
 	}
 	
@@ -72,26 +73,24 @@ sitemap intelliPWR label="intelliPWR" {
 	// ###################################################################
 
 	Frame label="Ortam Değişkenleri" visibility=[Environment_Power_Switch==ON] {
-		Text item=InPressure_Text 					label="İç Basınç" 		icon="i_press2.png"
-		Text item=InTemperature_Text 					label="İç Sıcaklık" 		icon="i_press2.png"
-		Text item=InHumidity_Text 					label="İç Nem" 			icon="i_press2.png"
+		Text item=InPressure_Text 					label="İç Basınç [%s]" 		icon="i_press2.png"
+		Text item=InTemperature_Text 					label="İç Sıcaklık [%s]" 	icon="i_press2.png"
+		Text item=InHumidity_Text 					label="İç Nem [%s]" 		icon="i_press2.png"
 	}
 
 	Frame visibility=[Environment_Power_Switch==ON] {
-		Text item=Environment_Info label="Özellikler" icon="i_info.png"{
-			Text item=Environment_Brand 				label="Marka" 			icon="i_info.png"
-			Text item=Environment_Model 				label="Model" 			icon="i_info.png"
-			Text item=Environment_Version 				label="Versiyon" 		icon="i_info.png"
+		Text item=Environment_Info label="Donanım [%s]" icon="i_info.png"{
+			Text item=Environment_Brand 				label="Marka [%s]" 		icon="i_info.png"
+			Text item=Environment_Model 				label="Model [%s]" 		icon="i_info.png"
+			Text item=Environment_Version 				label="Versiyon [%s]" 		icon="i_info.png"
 		}
 	}
 
 	// ###################################################################
 
 	Frame label="Konum" visibility=[Location_Power_Switch==ON] {
-		Text item=Sunrise_Text 						label="Gün Doğumu" 		icon="i_sunrise.png"
-		Text item=Sunset_Text 						label="Gün Batımı" 		icon="i_sunset.png"
-		Text item=Latitude_Text 					label="Enlem" 			icon="i_map.png"
-		Text item=Longitude_Text 					label="Boylam" 			icon="i_map.png"
+		Text item=Latitude_Text 					label="Enlem  [%.5f °]" 	icon="i_map.png"
+		Text item=Longitude_Text 					label="Boylam  [%.5f °]" 	icon="i_map.png"
 	}
 
 	Frame visibility=[Location_Power_Switch==ON] {
@@ -101,39 +100,39 @@ sitemap intelliPWR label="intelliPWR" {
 	}
 
 	Frame visibility=[Location_Power_Switch==ON] {
-		Text item=Location_Info label="Özellikler" icon="i_info.png"{
-			Text item=Location_Brand 				label="Marka" 			icon="i_info.png"
-			Text item=Location_Model 				label="Model" 			icon="i_info.png"
-			Text item=Location_Version 				label="Versiyon" 		icon="i_info.png"
+		Text item=Location_Info label="Donanım [%s]" icon="i_info.png"{
+			Text item=Location_Brand 				label="Marka [%s]" 		icon="i_info.png"
+			Text item=Location_Model 				label="Model [%s] " 		icon="i_info.png"
+			Text item=Location_Version 				label="Versiyon [%s]" 		icon="i_info.png"
 		}
 	}
 
 	// ###################################################################
 
-	Frame label="Yağmur Sensörü" visibility=[Rain_Power_Switch==ON]  {
-		Text item=Rain_Text 						label="Yağış Oranı" 		icon="i_drop.png"
+	Frame label="Yağmur Sensörü" visibility=[Rain_Power_Switch==ON] {
+		Text item=Rain_Text 						label="Yağış Oranı [%s %%]" 		icon="i_drop.png"
 	}
 
-	Frame visibility=[Rain_Power_Switch==ON]  {
+	Frame visibility=[Rain_Power_Switch==ON] {
 		Switch item=Rain_Switch 					label="Senaryo Uygula" 		icon="i_success.png"
 		Selection item=Rain_Selection_In 				label="Eğer Koşul ise..." 	icon="i_run.png" 		visibility=[Rain_Switch==ON]
 		Selection item=Rain_Selection_Out 				label="Uygula..." 		icon="i_run.png" 		visibility=[Rain_Switch==ON]
 	}
 
-	Frame visibility=[Rain_Power_Switch==ON]  {
-		Text item=Rain_Info label="Özellikler" icon="i_info.png"{
-			Text item=Rain_Brand 					label="Marka" 			icon="i_info.png"
-			Text item=Rain_Model 					label="Model" 			icon="i_info.png"
-			Text item=Rain_Version 					label="Versiyon" 		icon="i_info.png"
+	Frame visibility=[Rain_Power_Switch==ON] {
+		Text item=Rain_Info label="Donanım [%s]" icon="i_info.png"{
+			Text item=Rain_Brand 					label="Marka [%s]" 		icon="i_info.png"
+			Text item=Rain_Model 					label="Model [%s]" 		icon="i_info.png"
+			Text item=Rain_Version 					label="Versiyon [%s]" 		icon="i_info.png"
 		}
 	}
 
 	// ###################################################################
 
 	Frame label="Hava Sensörü" visibility=[Weather_Power_Switch==ON] {
-		Text item=Pollution_Text 					label="Kirlilik" 		icon="i_poll.png"
-		Text item=Propan_Text 						label="Propan" 			icon="i_burn.png"
-		Text item=Metan_Text 						label="Metan" 			icon="i_burn.png"
+		Text item=Pollution_Text 					label="Kirlilik [%s]" 		icon="i_burn.png"
+		Text item=Propan_Text 						label="Propan [%s]" 		icon="i_burn.png"
+		Text item=Metan_Text 						label="Metan [%s]" 		icon="i_burn.png"
 	}
 
 	Frame visibility=[Weather_Power_Switch==ON] {
@@ -143,10 +142,10 @@ sitemap intelliPWR label="intelliPWR" {
 	}
 
 	Frame visibility=[Weather_Power_Switch==ON] {
-		Text item=Weather_Info label="Özellikler" icon="i_info.png"{
-			Text item=Weather_Brand 				label="Marka" 			icon="i_info.png"
-			Text item=Weather_Model 				label="Model" 			icon="i_info.png"
-			Text item=Weather_Version 				label="Versiyon" 		icon="i_info.png"
+		Text item=Weather_Info label="Donanım [%s]" icon="i_info.png"{
+			Text item=Weather_Brand 				label="Marka [%s]" 		icon="i_info.png"
+			Text item=Weather_Model 				label="Model [%s]" 		icon="i_info.png"
+			Text item=Weather_Version 				label="Versiyon [%s]" 		icon="i_info.png"
 		}
 	}
 }

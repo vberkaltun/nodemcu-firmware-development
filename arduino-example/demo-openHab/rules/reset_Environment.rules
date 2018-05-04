@@ -4,16 +4,14 @@
 // ###################################################################
 // ###################################################################
 
-rule "check_Led_Switch"
+rule "reset_Environment_Power_Switch"
 	when
-		Item Led1_isConnected changed or 
-		Item Led2_isConnected changed
+		Item Environment_isConnected changed
 	then
-		if(Led1_isConnected.state == OFF)
-			if(Led2_isConnected.state == OFF) 
-				postUpdate(Led_Switch_Check,OFF)
-			else
-				postUpdate(Led_Switch_Check,ON)
+		postUpdate(Environment_Power_Switch,Environment_isConnected.state)
+
+		if(Environment_isConnected.state == OFF)
+			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
 		else
-			postUpdate(Led_Switch_Check,ON)
+			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt bağlandı!")
 	end

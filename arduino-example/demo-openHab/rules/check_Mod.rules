@@ -6,19 +6,15 @@
 
 rule "check_Mod_Switch"
 	when
-		Item Mod_Switch_Check changed or 
 		Item Led_Switch_Check changed or 
 		Item Manuel_Switch_Check changed
 	then
-		if (Logical_Switch_Check.state == OFF) {
-			if (Led_Switch_Check.state == OFF) {
-				if (Manuel_Switch_Check.state == OFF) {
-					sendCommand(Mod_Switch_Check,OFF)
-					sendCommand(Mod_Switch,OFF)
-				} else
-					sendCommand(Mod_Switch_Check,ON)
+		if(Led_Switch_Check.state == OFF) {
+			if(Manuel_Switch_Check.state == OFF) {
+				postUpdate(Mod_Switch_Check,OFF)
+				postUpdate(Mod_Switch,OFF)
 			} else
-				sendCommand(Mod_Switch_Check,ON)
+				postUpdate(Mod_Switch_Check,ON)
 		} else
-			sendCommand(Mod_Switch_Check,ON)
+			postUpdate(Mod_Switch_Check,ON)
 	end
