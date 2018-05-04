@@ -4,16 +4,16 @@
 // ###################################################################
 // ###################################################################
 
-rule "check_Logical_Switch"
+rule "check_Light_Switch"
 	when
-		Item Logical1_isConnected changed or 
-		Item Logical2_isConnected changed
+		Item Logical_Switch_Check changed or 
+		Item Led_Switch_Check changed
 	then
-		if(Logical1_isConnected.state == OFF)
-			if(Logical2_isConnected.state == OFF) 
-				postUpdate(Logical_Switch_Check,OFF)
+		if(Logical_Switch_Check.state == OFF)
+			if(Led_Switch_Check.state == OFF)
+				postUpdate(Light_Switch_Check,OFF)
 			else
-				postUpdate(Logical_Switch_Check,ON)
+				postUpdate(Light_Switch_Check,ON)
 		else
-			postUpdate(Logical_Switch_Check,ON)
+			postUpdate(Light_Switch_Check,ON)
 	end

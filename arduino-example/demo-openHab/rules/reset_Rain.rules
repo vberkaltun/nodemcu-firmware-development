@@ -9,7 +9,6 @@ rule "reset_Rain_Power_Switch"
 		Item Rain_isConnected changed
 	then
 		postUpdate(Rain_Power_Switch,Rain_isConnected.state)
-		postUpdate(Rain_Switch,OFF)
 
 		if(Rain_isConnected.state == OFF)
 			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
@@ -22,4 +21,6 @@ rule "reset_Rain_Power_Switch"
 		Item Rain_Power_Switch changed
 	then
 		postUpdate(Rain_Switch,OFF)
+		postUpdate(Rain_Selection_In,0)
+		postUpdate(Rain_Selection_Out,0)
 	end

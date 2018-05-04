@@ -1,0 +1,31 @@
+// ###################################################################
+// ###################################################################
+// ### WRITTEN BY BERK ALTUN AT 03.05.2018 ###########################
+// ###################################################################
+// ###################################################################
+
+rule "check_Socket_Switch"
+	when
+		Item Aircon_isConnected changed or 
+		Item Environment_isConnected changed or
+		Item Location_isConnected changed or
+		Item Rain_isConnected changed or
+		Item Weather_isConnected changed
+	then
+		if(Aircon_isConnected.state == OFF)
+			if(Environment_isConnected.state == OFF)
+				if(Location_isConnected.state == OFF)
+					if(Rain_isConnected.state == OFF)
+						if(Weather_isConnected.state == OFF)
+							postUpdate(Socket_Switch_Check,OFF)
+						else
+							postUpdate(Socket_Switch_Check,ON)
+					else
+						postUpdate(Socket_Switch_Check,ON)
+				else
+					postUpdate(Socket_Switch_Check,ON)
+			else
+				postUpdate(Socket_Switch_Check,ON)
+		else
+			postUpdate(Socket_Switch_Check,ON)
+	end

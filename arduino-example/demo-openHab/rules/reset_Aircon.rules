@@ -9,7 +9,6 @@ rule "reset_Aircon_Power_Switch"
 		Item Aircon_isConnected changed
 	then
 		postUpdate(Aircon_Power_Switch,Aircon_isConnected.state)
-		postUpdate(Aircon_Switch,OFF)
 		
 		if(Aircon_isConnected.state == OFF)
 			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")

@@ -4,17 +4,17 @@
 // ###################################################################
 // ###################################################################
 
-rule "check_Mod_Switch"
+rule "check_Rain_Switch"
 	when
-		Item Led_Switch_Check changed or 
-		Item Manuel_Switch_Check changed
+		Item Rain_Switch changed
 	then
-		if(Led_Switch_Check.state == OFF) {
-			if(Manuel_Switch_Check.state == OFF) {
-				postUpdate(Mod_Switch_Check,OFF)
-				postUpdate(Mod_Switch,OFF)
-			} else
-				postUpdate(Mod_Switch_Check,ON)
-		} else
-			postUpdate(Mod_Switch_Check,ON)
+		postUpdate(Rain_Selection_In,0)
+
+		postUpdate(Sub2_to_Logical1_Switch,OFF)
+		postUpdate(Sub2_to_Logical2_Switch,OFF)
+
+		postUpdate(Sub2_to_Led1_Switch,OFF)
+		postUpdate(Sub2_to_Led2_Switch,OFF)
+
+		postUpdate(Sub2_to_Aircon_Switch,OFF)
 	end

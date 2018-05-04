@@ -8,8 +8,7 @@ rule "reset_Weather_Power_Switch"
 	when
 		Item Weather_isConnected changed
 	then
-		postUpdate(Weather_Power_Switch,Aircon_isConnected.state.state)
-		postUpdate(Weather_Switch,OFF)
+		postUpdate(Weather_Power_Switch,Weather_isConnected.state)
 
 		if(Weather_isConnected.state == OFF)
 			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
@@ -22,4 +21,6 @@ rule "reset_Weather_Power_Switch"
 		Item Weather_Power_Switch changed
 	then
 		postUpdate(Weather_Switch,OFF)
+		postUpdate(Weather_Selection_In,0)
+		postUpdate(Weather_Selection_Out,0)
 	end

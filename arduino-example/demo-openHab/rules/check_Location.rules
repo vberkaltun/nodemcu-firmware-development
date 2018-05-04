@@ -4,16 +4,17 @@
 // ###################################################################
 // ###################################################################
 
-rule "check_Manuel_Switch"
+rule "check_Location_Switch"
 	when
-		Item Manuel1_isConnected changed or 
-		Item Manuel2_isConnected changed
+		Item Location_Switch changed
 	then
-		if(Manuel1_isConnected.state == OFF)
-			if(Manuel2_isConnected.state == OFF)
-				postUpdate(Manuel_Switch_Check,OFF)
-			else
-				postUpdate(Manuel_Switch_Check,ON)
-		else
-			postUpdate(Manuel_Switch_Check,ON)
+		postUpdate(Location_Selection_In,0)
+
+		postUpdate(Sub1_to_Logical1_Switch,OFF)
+		postUpdate(Sub1_to_Logical2_Switch,OFF)
+
+		postUpdate(Sub1_to_Led1_Switch,OFF)
+		postUpdate(Sub1_to_Led2_Switch,OFF)
+
+		postUpdate(Sub1_to_Aircon_Switch,OFF)
 	end
