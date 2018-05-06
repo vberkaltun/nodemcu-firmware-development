@@ -7,16 +7,11 @@
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
+#include <pins_arduino.h>
 
 // IMPORTANT NOTICE: These all constant is related with your
 // MQTT server and WiFi protocol. In additional, at the here, we are
 // Using cloudMQTT server for communication
-#define MQTT_USER "XXXXXXXXXX"
-#define MQTT_PASSWORD "XXXXXXXXXX"
-#define MQTT_SERVER "XXXXXXXXXX"
-#define MQTT_PORT 0000000000
-#define WIFI_SSID "XXXXXXXXXX"
-#define WIFI_PASSWORD "XXXXXXXXXX"
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
@@ -25,6 +20,15 @@
 #define DEVICE_BRAND "intelliPWR Incorporated"
 #define DEVICE_MODEL "MasterCore.X1"
 #define DEVICE_VERSION "VER 1.0.0"
+
+// // IMPORTANT NOTICE: We must redeclare our bus range because of
+// Subslave of slave device. At the here, we do not need to scan all
+// These device on the bus. In any case, slave device will scan their
+// Own slave device on the bus
+#define I2C_BUS_SDA 5
+#define I2C_BUS_SCL 4
+#define I2C_START_ADDRESS 0x20
+#define I2C_STOP_ADDRESS 0x65
 
 // IMPORTANT NOTICE: On I2C bus, You can send up to 32 bits on
 // Each transmission. Therefore, if there is more data than 32 bits
@@ -41,7 +45,7 @@
 // Enough for you, you can extend or shrink your data with this variable.
 // Due to lack of resources on memory, we were setted it as 8 but if you
 // Have more memory on your device, bigger value can be compatible
-#define MINIMIZED_BUFFER_SIZE 8
+#define MINIMIZED_BUFFER_SIZE 16
 
 // Outside protocol delimiters
 #define PROTOCOL_DELIMITERS ""
@@ -60,6 +64,7 @@
 
 enum handshakeData {Unknown, Ready};
 enum communicationData {Idle, Continue, End};
+enum notifyData {Online, Offline, Confirmed, Unconfirmed};
 
 struct vendorData {
   char Brand[BUFFER_SIZE];
@@ -70,7 +75,7 @@ struct vendorData {
 struct functionData {
   char Name[BUFFER_SIZE];
   bool Request = false;
-  unsigned short Interval = 0;
+  unsigned short Listen = false;
 };
 
 struct deviceData {
@@ -82,11 +87,12 @@ struct deviceData {
 
 QueueList<deviceData> deviceList;
 enum communicationData communicationFlag = Idle;
+enum notifyData notifyFlag = Offline;
 
 // -----
 
 // Do not change default value of this variable
-char receivedBuffer[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
+char receivedBuffer[BUFFER_SIZE * BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
 unsigned short sizeofReceivedBuffer = 0;
 
 // Do not change default value of this variable
@@ -106,13 +112,46 @@ void callBack(char* topic, byte* payload, unsigned int length);
 WiFiClient wifiClient;
 PubSubClient mqttClient(MQTT_SERVER, MQTT_PORT, callBack, wifiClient);
 
+// TEMPORARILY, will be delete on release
+#define WIRE_BEGIN 0x01
+
+#define BLINK_FREQUENCY 1000
+#define BLINK_RANGE 200
+
+// List of blink port, we declared two port
+// in order of, Listen, R, GB and SSR
+unsigned short sizeofPortList = 1;
+unsigned short portList[1][5] = {{D5, D6, D7}};
+
 void setup() {
+
+  // Set PWM frequency 500, default is 1000
+  analogWriteFreq(BLINK_FREQUENCY);
+
+  // Set range 0 ~ 100, default is 0 ~ 1023
+  analogWriteRange(BLINK_RANGE);
+
+  // Initialize RGB port and device listen port
+  for (unsigned short index = 0; index < sizeofPortList; index++) {
+    pinMode(portList[index][0], INPUT);
+    pinMode(portList[index][1], OUTPUT);
+    pinMode(portList[index][2], OUTPUT);
+
+    // Reset pins
+    analogWrite(portList[index][1], BLINK_RANGE);
+    analogWrite(portList[index][2], BLINK_RANGE);
+  }
+
+  // -----
 
   // Initialize communication on wire and serial protocol
   Serial.begin(9600);
-  Wire.begin(D1, D2);
 
-  // A name given to your ESP8266 module when discovering it as a port in ARDUINO IDE
+  // Initialize communication on Wire protocol
+  Wire.begin(I2C_BUS_SDA, I2C_BUS_SCL);
+  Wire.begin(WIRE_BEGIN);
+
+  // A name when discovering it as a port in ARDUINO IDE
   ArduinoOTA.setHostname(DEVICE_MODEL);
   ArduinoOTA.begin();
 
@@ -125,6 +164,7 @@ void setup() {
   // IMPORTANT NOTICE: Due to our I2C scanner lib, When a new device
   // Connected or disconnected to master, our I2C scanner lib decides
   // Which one is to be triggered
+  MasterScanner.setRange(I2C_START_ADDRESS, I2C_STOP_ADDRESS);
   MasterScanner.onConnectedSlaves(connectedSlaves);
   MasterScanner.onDisconnectedSlaves(disconnectedSlaves);
 
@@ -165,19 +205,19 @@ void listenFunction() {
     // Listen functions on connected device(s)
     for (unsigned short subindex = 0; subindex < deviceList[index].functionList.size(); subindex++) {
 
-      if (!deviceList[index].functionList[subindex].Request)
+      if (!deviceList[index].functionList[subindex].Listen)
         continue;
 
       // Store func name at here, we can not use it directly
-      char internalData[BUFFER_SIZE];
-      sprintf(internalData, "%s", deviceList[index].functionList[subindex].Name);
+      char internalData1[BUFFER_SIZE];
+      sprintf(internalData1, "%s", deviceList[index].functionList[subindex].Name);
 
-      char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
-      char *resultBuffer[] = {internalData, "NULL"};
-      char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
+      char *encodeDelimiter1 = generateDelimiterBuffer(DATA_DELIMITER, 1);
+      char *resultBuffer1[] = {internalData1, "NULL"};
+      char *result1 = Serialization.encode(1, encodeDelimiter1, 2, resultBuffer1);
 
       // Write internal function list to connected device, one-by-one
-      writeData(deviceList[index].address, result);
+      writeData(deviceList[index].address, result1);
 
       // We will do this till decoding will return false
       while (true) {
@@ -200,6 +240,30 @@ void listenFunction() {
         unknownEvent(sizeofReceivedBuffer, receivedBuffer);
         break;
       }
+
+      // -----
+
+      // Decode last given data from slave, after we will publish it
+      char *subDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
+      char **subBuffer = Serialization.decode(1, subDelimiter, sizeofReceivedBuffer, receivedBuffer);
+
+      // Null operator check
+      if (subBuffer == NULL)
+        break;
+
+      // -----
+
+      // Store func name at here, we can not use it directly
+      char internalData2[BUFFER_SIZE];
+      sprintf(internalData2, "0x%2x", deviceList[index].address);
+
+      // Looking good, inline if-loop
+      char *encodeDelimiter2 = generateDelimiterBuffer("/", 2);
+      char *resultBuffer2[] = {internalData2, internalData1};
+      char *result2 = Serialization.encode(2, encodeDelimiter2, 2, resultBuffer2);
+
+      // Publish last received buffer to MQTT broker
+      mqttClient.publish(result2, subBuffer[1]);
     }
   }
 }
@@ -228,8 +292,12 @@ void connectedSlaves(uint8_t data[], byte sizeofData) {
   for (unsigned short index = 0; index < sizeofData; index++) {
     Serial.print("\t ID: 0x");
     Serial.println(data[index], HEX);
+
   }
   Serial.println("\t ---");
+
+  // Notify end user, status is device online
+  notifyBlink(0, Online);
 
   // -----
 
@@ -299,6 +367,9 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
     subscribeTopic(data[index], false);
   }
   Serial.println("\t ---");
+
+  // Notify end user, status is device online
+  notifyBlink(0, Offline);
 
   // -----
 
@@ -377,20 +448,37 @@ bool subscribeTopic(char address, bool type) {
     if (address == deviceList[index].address) {
 
       // Store func name at here, we can not use it directly
-      char internalData[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
+      char internalData[BUFFER_SIZE];
       sprintf(internalData, "0x%2x", address);
 
-      char *encodeDelimiter = generateDelimiterBuffer("/", 2);
-      char *resultBuffer[] = {DEVICE_MODEL, internalData};
-      char *result = Serialization.encode(2, encodeDelimiter, 2, resultBuffer);
-
       // Looking good, inline if-loop
-      type ? mqttClient.subscribe(result) : mqttClient.unsubscribe(result);
-      mqttClient.publish(result, type ? "1" : "0");
+      char *encodeDelimiter1 = generateDelimiterBuffer("/", 2);
+      char *resultBuffer1[] = {internalData, "isConnected"};
+      char *result1 = Serialization.encode(2, encodeDelimiter1, 2, resultBuffer1);
+      type ? mqttClient.subscribe(result1) : mqttClient.unsubscribe(result1);
+      mqttClient.publish(result1, type ? "1" : "0");
+
+      char *encodeDelimiter2 = generateDelimiterBuffer("/", 2);
+      char *resultBuffer2[] = {internalData, "brand"};
+      char *result2 = Serialization.encode(2, encodeDelimiter2, 2, resultBuffer2);
+      type ? mqttClient.publish(result2, deviceList[index].vendorList.Brand) : NULL;
+
+      char *encodeDelimiter3 = generateDelimiterBuffer("/", 2);
+      char *resultBuffer3[] = {internalData, "model"};
+      char *result3 = Serialization.encode(2, encodeDelimiter3, 2, resultBuffer3);
+      type ? mqttClient.publish(result3,  deviceList[index].vendorList.Model) : NULL;
+
+      char *encodeDelimiter4 = generateDelimiterBuffer("/", 2);
+      char *resultBuffer4[] = {internalData, "version"};
+      char *result4 = Serialization.encode(2, encodeDelimiter4, 2, resultBuffer4);
+      type ? mqttClient.publish(result4, deviceList[index].vendorList.Version) : NULL;
 
       // -----
 
       for (unsigned short subindex = 0; subindex < deviceList[index].functionList.size(); subindex++) {
+
+        if (!deviceList[index].functionList[subindex].Request)
+          continue;
 
         // Store func name at here, we can not use it directly
         char subInternalData0[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
@@ -400,9 +488,9 @@ bool subscribeTopic(char address, bool type) {
         char subInternalData1[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
         sprintf(subInternalData1, "%s", deviceList[index].functionList[subindex].Name);
 
-        char *subEncodeDelimiter = generateDelimiterBuffer("/", 3);
-        char *subResultBuffer[] = {DEVICE_MODEL, subInternalData0, subInternalData1};
-        char *subResult = Serialization.encode(3, subEncodeDelimiter, 3, subResultBuffer);
+        char *subEncodeDelimiter = generateDelimiterBuffer("/", 2);
+        char *subResultBuffer[] = {subInternalData0, subInternalData1};
+        char *subResult = Serialization.encode(2, subEncodeDelimiter, 2, subResultBuffer);
 
         // Looking good, inline if-loop
         type ? mqttClient.subscribe(subResult) : mqttClient.unsubscribe(subResult);
@@ -414,7 +502,60 @@ bool subscribeTopic(char address, bool type) {
   }
 }
 
-void callBack(char* topic, byte* payload, unsigned int length) {
+void callBack(char* topic, byte * payload, unsigned int length) {
+
+  // Convert topic to string to make it easier to work with
+  String stringofTopic = topic;
+  unsigned short sizeofTopic = stringofTopic.length();
+
+  // Print out some debugging info
+  Serial.print("Done! Callback updated on <");
+  Serial.print(stringofTopic);
+  Serial.print(">[");
+  Serial.print(length);
+  Serial.println("].");
+
+  // Generate a delimiter data and use in with decoding function
+  char *decodeDelimiter = generateDelimiterBuffer("/", 2);
+  char **decodeBuffer = Serialization.decode(2, decodeDelimiter, sizeofTopic, topic);
+
+  // Null operator check
+  if (decodeBuffer != NULL) {
+
+    char internalData0[BUFFER_SIZE];
+    sprintf(internalData0, "%s", decodeBuffer[0]);
+    unsigned short sizeofInternalData0 = strlen(internalData0);
+
+    char internalData1[BUFFER_SIZE];
+    sprintf(internalData1, "%s", decodeBuffer[1]);
+    unsigned short sizeofInternalData1 = strlen(internalData1);
+
+    for (unsigned short index = 0; index < deviceList.size(); index++) {
+
+      // Store func name at here, we can not use it directly
+      char internalData2[BUFFER_SIZE];
+      sprintf(internalData2, "0x%2x", deviceList[index].address);
+
+      // Check thar is it same or not
+      for (unsigned short subindex = 0; subindex < sizeofInternalData0; subindex++)
+        if (internalData0[subindex] != internalData2[subindex])
+          break;
+
+      // -----
+
+      char internalData3[length + 1];
+      for (unsigned short subindex = 0; subindex < sizeofTopic; subindex++)
+        internalData3[subindex] = (char)payload[subindex];
+      internalData3[length] = '\0';
+
+      char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
+      char *resultBuffer[] = {internalData1, internalData3};
+      char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
+
+      // Write internal data list to connected device, one-by-one
+      writeData(deviceList[index].address, result);
+    }
+  }
 }
 
 void connectWiFi() {
@@ -443,6 +584,98 @@ void connectWiFi() {
   // If we are not connected to server, try to connect server
   if (!mqttClient.connected())
     mqttClient.connect((char*) DEVICE_MODEL, MQTT_USER, MQTT_PASSWORD);
+}
+
+void notifyBlink(unsigned short port, enum notifyData statusofNotify) {
+
+  switch (statusofNotify) {
+    case Online:
+      for (int index = 0; index < 3; index++) {
+        for (int subindex = BLINK_RANGE; subindex > 0; subindex--) {
+          analogWrite(portList[port][1], subindex);
+          analogWrite(portList[port][2], subindex);
+          delay(1);
+        }
+        delay(400);
+        for (int subindex = 0; subindex < BLINK_RANGE; subindex++) {
+          analogWrite(portList[port][1], subindex);
+          analogWrite(portList[port][2], subindex);
+          delay(2);
+        }
+        delay(800);
+      }
+      for (int index = BLINK_RANGE; index > 0; index--) {
+        analogWrite(portList[port][1], index);
+        analogWrite(portList[port][2], index);
+        delay(1);
+      }
+      // Update last stored notify flag
+      notifyFlag = Online;
+      portList[port][4] = 1;
+      break;
+
+    case Offline:
+      switch (notifyFlag) {
+        case Online:
+          for (int index = 0; index < BLINK_RANGE; index++) {
+            analogWrite(portList[port][1], index);
+            analogWrite(portList[port][2], index);
+            delay(1);
+          }
+          break;
+
+        case Confirmed:
+          for (int index = 0; index < BLINK_RANGE; index++) {
+            analogWrite(portList[port][2], index);
+            delay(1);
+          }
+          break;
+
+        case Unconfirmed:
+          for (int index = 0; index < BLINK_RANGE; index++) {
+            analogWrite(portList[port][1], index);
+            delay(1);
+          }
+          break;
+
+        default:
+          analogWrite(portList[port][1], BLINK_RANGE);
+          analogWrite(portList[port][2], BLINK_RANGE);
+          break;
+      }
+      // Update last stored notify flag
+      notifyFlag = Offline;
+      portList[port][4] = 0;
+      break;
+
+    case Confirmed:
+      for (int index = 0; index < BLINK_RANGE; index++) {
+        analogWrite(portList[port][1], index);
+        delay(1);
+      }
+      // Update last stored notify flag
+      notifyFlag = Confirmed;
+      portList[port][4] = 1;
+      break;
+
+    case Unconfirmed:
+      for (int index = BLINK_RANGE; index > 0; index--) {
+        analogWrite(portList[port][2], index);
+        delay(1);
+      }
+      // Update last stored notify flag
+      notifyFlag = Unconfirmed;
+      portList[port][4] = 1;
+      break;
+
+    default:
+      analogWrite(portList[port][1], BLINK_RANGE);
+      analogWrite(portList[port][2], BLINK_RANGE);
+      // Update last stored notify flag
+      notifyFlag = Offline;
+      portList[port][4] = 0;
+      break;
+  }
 }
 
 // -----
@@ -555,7 +788,7 @@ void copyConfigurationData(char fromAddress, char toAddress) {
     }
 
     deviceList[toAddress].functionList[index].Request = deviceList[fromAddress].functionList[index].Request;
-    deviceList[toAddress].functionList[index].Interval = deviceList[fromAddress].functionList[index].Interval;
+    deviceList[toAddress].functionList[index].Listen = deviceList[fromAddress].functionList[index].Listen;
   }
 
   deviceList[toAddress].handshake = deviceList[fromAddress].handshake;
@@ -600,8 +833,14 @@ bool fillConfigurationData(unsigned short index, char address) {
       break;
 
     case 1:
-      if (!fillFunctionData(address, countofCharacter, newReceivedBuffer))
+      if (!fillFunctionData(address, countofCharacter, newReceivedBuffer)) {
+        // Notify end user, status is device online
+        notifyBlink(0, Unconfirmed);
         return false;
+      }
+
+      // Notify end user, status is device online
+      notifyBlink(0, Confirmed);
 
       // Notify user
       for (unsigned short index = 0; index < deviceList[0].functionList.size(); index++) {
@@ -716,7 +955,7 @@ bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
     }
 
     newFunctionData.Request = (bool)atoi(internalData1);
-    newFunctionData.Interval = atoi(internalData2);
+    newFunctionData.Listen = (bool)atoi(internalData2);
 
     // If we can arrive there, we can say function data is ok
     deviceList[0].functionList.pushFront(newFunctionData);
@@ -912,4 +1151,3 @@ bool isAlphanumeric(unsigned short sizeofData, char data[]) {
 
   return true;
 }
-
