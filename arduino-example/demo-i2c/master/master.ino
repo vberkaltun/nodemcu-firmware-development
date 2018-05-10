@@ -8,6 +8,7 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
 #include <pins_arduino.h>
+#include <user_interface.h>
 
 // IMPORTANT NOTICE: These all constant is related with your
 // MQTT server and WiFi protocol. In additional, at the here, we are
@@ -285,6 +286,23 @@ void listenWiFi() {
 
 void connectedSlaves(uint8_t data[], byte sizeofData) {
 
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  for (char index = 0; index < sizeofGivenBuffer; index++)
+    for (char subindex = 0; subindex < BUFFER_SIZE; subindex++)
+      givenBuffer[index][subindex] = '\0';
+
+  sizeofGivenBuffer = 0;
+  indexofGivenBuffer = 0;
+
+  // Free up out-of-date buffer data
+  receivedBuffer[0] = '\0';
+  sizeofReceivedBuffer = 0;
+
+  // -----
+
   Serial.print("Done! ");
   Serial.print(sizeofData, DEC);
   Serial.println(" slave device(s) connected to I2C bus. ID(s): ");
@@ -355,6 +373,23 @@ void connectedSlaves(uint8_t data[], byte sizeofData) {
 
 void disconnectedSlaves(uint8_t data[], byte sizeofData) {
 
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  for (char index = 0; index < sizeofGivenBuffer; index++)
+    for (char subindex = 0; subindex < BUFFER_SIZE; subindex++)
+      givenBuffer[index][subindex] = '\0';
+
+  sizeofGivenBuffer = 0;
+  indexofGivenBuffer = 0;
+
+  // Free up out-of-date buffer data
+  receivedBuffer[0] = '\0';
+  sizeofReceivedBuffer = 0;
+
+  // -----
+
   Serial.print("Done! ");
   Serial.print(sizeofData, DEC);
   Serial.println(" slave device(s) disconnected from I2C bus.");
@@ -418,6 +453,23 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
 // -----
 
 void unknownEvent(unsigned short sizeofData, char data[]) {
+
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  for (char index = 0; index < sizeofGivenBuffer; index++)
+    for (char subindex = 0; subindex < BUFFER_SIZE; subindex++)
+      givenBuffer[index][subindex] = '\0';
+
+  sizeofGivenBuffer = 0;
+  indexofGivenBuffer = 0;
+
+  // Free up out-of-date buffer data
+  receivedBuffer[0] = '\0';
+  sizeofReceivedBuffer = 0;
+
+  // -----
 
   // Notify user
   Serial.print("Error! Unexpected <");
@@ -696,7 +748,7 @@ bool writeData(char address, char *data) {
     Wire.endTransmission();
 
     // Maybe not need, right?
-    delay(10);
+    delay(15);
   }
 
   // IMPORTANT NOTICE: Due to decoding of slave device, we need to Wait
@@ -704,8 +756,7 @@ bool writeData(char address, char *data) {
   // Device too early and slave cannot send it. Additional, when more
   // Devices are connected, we need to downgrade delay time. Already,
   // It will take the same time during roaming
-  unsigned short timeDivider = (deviceList.size() > 1) ? deviceList.size() - 1 : 1;
-  delay(100 / timeDivider);
+  delay(100);
 
   // If everything goes well, we will arrive here and return true
   return true;
@@ -729,10 +780,10 @@ bool readData(char address) {
       newReceivedBuffer[indexofNewReceivedBuffer] = '\0';
       break;
     }
-
-    // Maybe not need, right?
-    delay(10);
   }
+
+  // Maybe not need, right?
+  delay(15);
 
   // Decode last given data
   if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
@@ -961,8 +1012,7 @@ bool fillFunctionData(char address, unsigned short sizeofData, char **data) {
     deviceList[0].functionList.pushFront(newFunctionData);
   }
 
-  // I KNOW ... I KNOW, I AM GOD OF EVERYTHING (JOKE)...
-  // ADDED AT 26.04.2018 BY BERK ALTUN, LAST MAJOR ADDITION
+  // Set other important externals data to internals list
   deviceList[0].handshake = Ready;
   deviceList[0].address = address;
 
@@ -1101,7 +1151,10 @@ char *generateDelimiterBuffer(char *character, unsigned short sizeofData) {
     return false;
 
   // Store count of found on this variable
-  char arrayofCharacter[sizeofData + 1];
+  static char arrayofCharacter[BUFFER_SIZE * MINIMIZED_BUFFER_SIZE];
+
+  // Set first bit as end-of-line biti this is for initialize
+  arrayofCharacter[0] = '\0';
 
   for (unsigned short index = 0; index < sizeofData; index++)
     arrayofCharacter[index] = *character;
