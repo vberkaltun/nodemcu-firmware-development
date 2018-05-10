@@ -1,30 +1,24 @@
 #include <Wire.h>
 #include <Serializer.h>
-#include <EEPROM.h>
 #include <MemoryFree.h>
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
 // That's mean, all function will use this delimiter constant on
 // Communication between two or more devices
-#define DEVICE_BRAND "Broadcom_Incorporated"
-#define DEVICE_MODEL "BCM_43142"
-#define DEVICE_VERSION "VER_1.0.0"
-
-// IMPORTANT NOTICE: Do not change this variable
-// Thus, 0x03 index was reserved for bus address of device
-#define EEPROM_ADDRESS 0x03
+#define DEVICE_BRAND "intelliPWR"
+#define DEVICE_MODEL "Slave Tester"
+#define DEVICE_VERSION "1.0.0"
 
 // IMPORTANT NOTICE: On I2C bus, You can send up to 32 bits on
 // Each transmission. Therefore, if there is more data than 32 bits
 // We should split it. Then we can send our data to master
 #define DIVISOR_NUMBER 25
 
-// IMPORTANT NOTICE: Based on buffer size of I2C bus and maximum
-// Range of your device. At the here, we declared it with 32 bit
-// Because of buffer size of Arduino but if you have a bigger buffer
-// Than 32 bit. you can upgrade and speed up your buffers
-#define BUFFER_SIZE 32
+// IMPORTANT NOTICE: With this pin, We will listen user input from power
+// Socket. When an input triggered from power socket, the state of this
+// Pin will change and therefore, we can update LED status on GUI
+#define PIN_ONLINE 13
 
 // Outside protocol delimiters
 #define PROTOCOL_DELIMITERS ""
@@ -50,23 +44,23 @@ char** givenBuffer = NULL;
 unsigned short sizeofGivenBuffer = 0;
 unsigned short indexofGivenBuffer = 0;
 
-const char sizeofFunctionList = 3;
-const char* functionList[] = {"getVendors",
+const char sizeofFunctionList = 8;
+const char *functionList[] = {"getVendors",
                               "getFunctionList"
                              };
 
 const char sizeofReturnList = sizeofFunctionList;
-const char* returnList[] = {"1",
-                            "1"
+const char *returnList[] = {"0",
+                            "0"
                            };
 
 const char sizeofListenList = sizeofFunctionList;
-const char* listenList[] = {"100",
-                            "100"
+const char *listenList[] = {"0",
+                            "0"
                            };
 
 // TEMPORARILY, will be delete on release
-#define WIRE_BEGIN 0x30
+#define WIRE_BEGIN 0x60
 
 void setup() {
 
@@ -79,6 +73,10 @@ void setup() {
 
   // Initialize communication on Wire protocol
   Wire.begin(WIRE_BEGIN);
+
+  // Initialize "I am connected to the bus" pin
+  pinMode(PIN_ONLINE, OUTPUT);
+  digitalWrite(PIN_ONLINE, HIGH);
 }
 
 void loop() {
@@ -107,6 +105,7 @@ void receiveEvent(unsigned short sizeofData) {
   if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
     unknownEvent(indexofNewReceivedBuffer, newReceivedBuffer);
 
+  // Do not forget to free up local data
   free(newReceivedBuffer);
 }
 
@@ -116,14 +115,18 @@ void requestEvent() {
   // Data(s) this is the best way of worst case because the receiver device
   // Can always Decode this data and when we send "not filled" protocol
   // Data(s), this means we are sending empty data(s)
-  if (indexofGivenBuffer >= sizeofGivenBuffer)
-    Wire.write(PROTOCOL_DELIMITERS);
-  else {
-    if (sizeofGivenBuffer > 0)
-      Wire.write(givenBuffer[indexofGivenBuffer++]);
-    else
-      Wire.write(PROTOCOL_DELIMITERS);
+  if (indexofGivenBuffer >= sizeofGivenBuffer && sizeofGivenBuffer == 0) {
+    Wire.write("UNKNOWN_REQUEST");
+
+    // IMPORTANT NOTICE: This point can explaine as the least desirable
+    // Situation. When program arrrives this point, that's mean master
+    // Send more than calculated data or less than calculated data. But
+    // Do not worry, I wrote all code blocks as far as stable. It will
+    // Terminate itself automaticly when it was arrive there
+    clearGivenBuffer();
   }
+  else
+    Wire.write(givenBuffer[indexofGivenBuffer++]);
 }
 
 // -----
@@ -143,9 +146,8 @@ void unknownEvent(unsigned short sizeofData, char data[]) {
   Serial.println("] data received.");
 
   // At the end, free up out-of-date buffer data
-  free(receivedBuffer);
-  receivedBuffer = NULL;
-  sizeofReceivedBuffer = 0;
+  clearGivenBuffer();
+  clearReceivedBuffer();
 }
 
 void executeEvent(unsigned short sizeofData, char data[]) {
@@ -202,9 +204,7 @@ void executeEvent(unsigned short sizeofData, char data[]) {
     unknownEvent(sizeofData, data);
 
   // At the end, free up out-of-date buffer data
-  free(receivedBuffer);
-  receivedBuffer = NULL;
-  sizeofReceivedBuffer = 0;
+  clearReceivedBuffer();
 }
 
 // -----
@@ -315,6 +315,33 @@ bool encodeData(unsigned short sizeofData, char data[]) {
 
 // -----
 
+void clearGivenBuffer() {
+
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  for (char index = 0; index < sizeofGivenBuffer; index++)
+    free(givenBuffer[index]);
+
+  // After free up top level pointer
+  free(givenBuffer);
+  givenBuffer = NULL;
+  sizeofGivenBuffer = 0;
+  indexofGivenBuffer = 0;
+}
+
+void clearReceivedBuffer() {
+
+  // IMPORTANT NOTICE: Before the calling internal functions,
+  // Last stored data must be removed on memory. Otherwise, we can not sent
+  // Last stored data to master device. And additional, data removing will refresh
+  // the size of data in memory. This is most important thing ...
+  free(receivedBuffer);
+  receivedBuffer = NULL;
+  sizeofReceivedBuffer = 0;
+}
+
 bool isNumeric(unsigned short sizeofData, char data[]) {
 
   if (sizeofData == 0 || data == NULL)
@@ -342,18 +369,11 @@ bool isAlphanumeric(unsigned short sizeofData, char data[]) {
 
 void callReceivedFunction(unsigned short indexofFunction, unsigned short sizeofData, char data[]) {
 
-  // IMPORTANT NOTICE: Before the calling internal functions,
-  // Last stored data must be removed on memory. Otherwise, we can not sent
-  // Last stored data to master device. And additional, data removing will refresh
-  // the size of data in memory. This is most important thing ...
-  for (char index = 0; index < sizeofGivenBuffer; index++)
-    free(givenBuffer[index]);
+  // At the first, free up out-of-date buffer data
+  clearGivenBuffer();
+  clearReceivedBuffer();
 
-  // After free up top level pointer
-  free(givenBuffer);
-  givenBuffer = NULL;
-  sizeofGivenBuffer = 0;
-  indexofGivenBuffer = 0;
+  // -----
 
   switch (indexofFunction) {
     case 0:
@@ -401,11 +421,8 @@ void getFunctionList(unsigned short sizeofData, char data[]) {
   Serial.print(__func__);
   Serial.println(" function triggered.");
 
-  char *delimiterBuffer = "";
-  char *resultBuffer[] = {functionList[2],
-                          returnList[2],
-                          listenList[2]
-                         };
-  char *result = Serialization.encode(2, delimiterBuffer, 3, resultBuffer);
+  char *delimiterBuffer = "";
+  char *resultBuffer[] = {"External", "Core"};
+  char *result = Serialization.encode(1, delimiterBuffer, 2, resultBuffer);
   encodeData(strlen(result), result);
 }
