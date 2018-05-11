@@ -118,11 +118,9 @@ PubSubClient mqttClient(MQTT_SERVER, MQTT_PORT, callBack, wifiClient);
 
 #define BLINK_FREQUENCY 1000
 #define BLINK_RANGE 200
-
-// List of blink port, we declared two port
-// in order of, Listen, R, GB and SSR
-unsigned short sizeofPortList = 1;
-unsigned short portList[1][5] = {{D5, D6, D7}};
+#define BLINK_R D6
+#define BLINK_GB D7
+#define SSR D5
 
 void setup() {
 
@@ -133,15 +131,14 @@ void setup() {
   analogWriteRange(BLINK_RANGE);
 
   // Initialize RGB port and device listen port
-  for (unsigned short index = 0; index < sizeofPortList; index++) {
-    pinMode(portList[index][0], INPUT);
-    pinMode(portList[index][1], OUTPUT);
-    pinMode(portList[index][2], OUTPUT);
+  pinMode(BLINK_R, OUTPUT);
+  pinMode(BLINK_GB, OUTPUT);
+  pinMode(SSR, OUTPUT);
 
-    // Reset pins
-    analogWrite(portList[index][1], BLINK_RANGE);
-    analogWrite(portList[index][2], BLINK_RANGE);
-  }
+  // Reset pins
+  analogWrite(BLINK_R, BLINK_RANGE);
+  analogWrite(BLINK_GB, BLINK_RANGE);
+  digitalWrite(SSR, HIGH);
 
   // -----
 
@@ -567,6 +564,14 @@ void callBack(char* topic, byte * payload, unsigned int length) {
   Serial.print(length);
   Serial.println("].");
 
+  // Decode payload to char array
+  char payloadData[length + 1];
+  for (unsigned short subindex = 0; subindex < sizeofTopic; subindex++)
+    payloadData[subindex] = (char)payload[subindex];
+  payloadData[length] = '\0';
+
+  // -----
+
   // Generate a delimiter data and use in with decoding function
   char *decodeDelimiter = generateDelimiterBuffer("/", 2);
   char **decodeBuffer = Serialization.decode(2, decodeDelimiter, sizeofTopic, topic);
@@ -582,9 +587,32 @@ void callBack(char* topic, byte * payload, unsigned int length) {
     sprintf(internalData1, "%s", decodeBuffer[1]);
     unsigned short sizeofInternalData1 = strlen(internalData1);
 
+    // -----
+
+    // Declare a flag, related with device status
+    bool deviceModelFlag = true;
+
+    // Compare internal data(s) with device model, higher priority
+    for (unsigned short index = 0; index < strlen(DEVICE_MODEL); index++) {
+      if (internalData0[index] != DEVICE_MODEL[index]) {
+        deviceModelFlag = false;
+        break;
+      }
+    }
+
+    // IMPORTANT NOTICE: If we can arrive there, that's mean the payload
+    // Data is consisted of status data. Otherwise, we can say the payload
+    // Data is not consisted of status data. Worst case, Go other state
+    // Of if, that's mean also it is a function data(s)
+    if (deviceModelFlag && isNumeric(1, payloadData))
+      digitalWrite(SSR, (bool)(payload[0] - '0'));
+
+    // -----
+
+    // Compare internal data(s) with registered function list
     for (unsigned short index = 0; index < deviceList.size(); index++) {
 
-      // Store func name at here, we can not use it directly
+      // Store func name at the here, we can not use it directly
       char internalData2[BUFFER_SIZE];
       sprintf(internalData2, "0x%2x", deviceList[index].address);
 
@@ -595,13 +623,8 @@ void callBack(char* topic, byte * payload, unsigned int length) {
 
       // -----
 
-      char internalData3[length + 1];
-      for (unsigned short subindex = 0; subindex < sizeofTopic; subindex++)
-        internalData3[subindex] = (char)payload[subindex];
-      internalData3[length] = '\0';
-
       char *encodeDelimiter = generateDelimiterBuffer(DATA_DELIMITER, 1);
-      char *resultBuffer[] = {internalData1, internalData3};
+      char *resultBuffer[] = {internalData1, payloadData};
       char *result = Serialization.encode(1, encodeDelimiter, 2, resultBuffer);
 
       // Write internal data list to connected device, one-by-one
@@ -634,98 +657,103 @@ void connectWiFi() {
   }
 
   // If we are not connected to server, try to connect server
-  if (!mqttClient.connected())
-    mqttClient.connect((char*) DEVICE_MODEL, MQTT_USER, MQTT_PASSWORD);
+  while (!mqttClient.connected()) {
+    if (mqttClient.connect((char*) DEVICE_MODEL, MQTT_USER, MQTT_PASSWORD)) {
+
+      // IMPORTANT NOTICE: First of all, we need to subscribe main device
+      // We call it like XXXX/status and this broker is related with SSR
+      // State of device. We will listen something about this and execute it
+      char *encodeDelimiter = generateDelimiterBuffer("/", 2);
+      char *resultBuffer[] = {DEVICE_MODEL, "status"};
+      char *result = Serialization.encode(2, encodeDelimiter, 2, resultBuffer);
+      mqttClient.subscribe(result);
+    }
+  }
 }
 
-void notifyBlink(unsigned short port, enum notifyData statusofNotify) {
+void notifyBlink(unsigned short port, enum notifyData status) {
 
-  switch (statusofNotify) {
+  switch (status) {
     case Online:
       for (int index = 0; index < 3; index++) {
         for (int subindex = BLINK_RANGE; subindex > 0; subindex--) {
-          analogWrite(portList[port][1], subindex);
-          analogWrite(portList[port][2], subindex);
+          analogWrite(BLINK_R, subindex);
+          analogWrite(BLINK_GB, subindex);
           delay(1);
         }
         delay(400);
         for (int subindex = 0; subindex < BLINK_RANGE; subindex++) {
-          analogWrite(portList[port][1], subindex);
-          analogWrite(portList[port][2], subindex);
+          analogWrite(BLINK_R, subindex);
+          analogWrite(BLINK_GB, subindex);
           delay(2);
         }
         delay(800);
       }
       for (int index = BLINK_RANGE; index > 0; index--) {
-        analogWrite(portList[port][1], index);
-        analogWrite(portList[port][2], index);
+        analogWrite(BLINK_R, index);
+        analogWrite(BLINK_GB, index);
         delay(1);
       }
       // Update last stored notify flag
       notifyFlag = Online;
-      portList[port][4] = 1;
       break;
 
     case Offline:
       switch (notifyFlag) {
         case Online:
           for (int index = 0; index < BLINK_RANGE; index++) {
-            analogWrite(portList[port][1], index);
-            analogWrite(portList[port][2], index);
+            analogWrite(BLINK_R, index);
+            analogWrite(BLINK_GB, index);
             delay(1);
           }
           break;
 
         case Confirmed:
           for (int index = 0; index < BLINK_RANGE; index++) {
-            analogWrite(portList[port][2], index);
+            analogWrite(BLINK_GB, index);
             delay(1);
           }
           break;
 
         case Unconfirmed:
           for (int index = 0; index < BLINK_RANGE; index++) {
-            analogWrite(portList[port][1], index);
+            analogWrite(BLINK_R, index);
             delay(1);
           }
           break;
 
         default:
-          analogWrite(portList[port][1], BLINK_RANGE);
-          analogWrite(portList[port][2], BLINK_RANGE);
+          analogWrite(BLINK_R, BLINK_RANGE);
+          analogWrite(BLINK_GB, BLINK_RANGE);
           break;
       }
       // Update last stored notify flag
       notifyFlag = Offline;
-      portList[port][4] = 0;
       break;
 
     case Confirmed:
       for (int index = 0; index < BLINK_RANGE; index++) {
-        analogWrite(portList[port][1], index);
+        analogWrite(BLINK_R, index);
         delay(1);
       }
       // Update last stored notify flag
       notifyFlag = Confirmed;
-      portList[port][4] = 1;
       break;
 
     case Unconfirmed:
       for (int index = BLINK_RANGE; index > 0; index--) {
-        analogWrite(portList[port][2], index);
+        analogWrite(BLINK_GB, index);
         delay(1);
       }
       // Update last stored notify flag
       notifyFlag = Unconfirmed;
-      portList[port][4] = 1;
       break;
 
     default:
-      analogWrite(portList[port][1], BLINK_RANGE);
-      analogWrite(portList[port][2], BLINK_RANGE);
+      analogWrite(BLINK_R, BLINK_RANGE);
+      analogWrite(BLINK_GB, BLINK_RANGE);
       // Update last stored notify flag
       notifyFlag = Offline;
-      portList[port][4] = 0;
       break;
   }
 }
