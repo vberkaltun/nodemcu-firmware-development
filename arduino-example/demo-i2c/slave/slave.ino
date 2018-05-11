@@ -15,11 +15,6 @@
 // We should split it. Then we can send our data to master
 #define DIVISOR_NUMBER 25
 
-// IMPORTANT NOTICE: With this pin, We will listen user input from power
-// Socket. When an input triggered from power socket, the state of this
-// Pin will change and therefore, we can update LED status on GUI
-#define PIN_ONLINE 13
-
 // Outside protocol delimiters
 #define PROTOCOL_DELIMITERS ""
 #define PROTOCOL_DELIMITERS_SIZE 3
@@ -73,10 +68,6 @@ void setup() {
 
   // Initialize communication on Wire protocol
   Wire.begin(WIRE_BEGIN);
-
-  // Initialize "I am connected to the bus" pin
-  pinMode(PIN_ONLINE, OUTPUT);
-  digitalWrite(PIN_ONLINE, HIGH);
 }
 
 void loop() {
