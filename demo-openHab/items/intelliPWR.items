@@ -7,25 +7,8 @@
 Switch Light_Switch_Check
 Switch Socket_Switch_Check
 
-// ###################################################################
-
-Switch Sub1_to_Logical1_Switch
-Switch Sub1_to_Logical2_Switch
-Switch Sub1_to_Led1_Switch
-Switch Sub1_to_Led2_Switch
-Switch Sub1_to_Aircon_Switch
-
-Switch Sub2_to_Logical1_Switch
-Switch Sub2_to_Logical2_Switch
-Switch Sub2_to_Led1_Switch
-Switch Sub2_to_Led2_Switch
-Switch Sub2_to_Aircon_Switch
-
-Switch Sub3_to_Logical1_Switch
-Switch Sub3_to_Logical2_Switch
-Switch Sub3_to_Led1_Switch
-Switch Sub3_to_Led2_Switch
-Switch Sub3_to_Aircon_Switch
+Colorpicker Led1_Color
+Colorpicker Led2_Color
 
 // ###################################################################
 
@@ -47,7 +30,12 @@ Switch Led2_isConnected					{mqtt="<[mosquitto:/0x53/isConnected:command:ON:1],<
 
 // ###################################################################
 
-Switch Aircon_Power_Switch
+Switch Socket1_Power_Switch 				{mqtt=">[mosquitto:/MasterCore.X1/status:command:ON:1],>[mosquitto:/MasterCore.X1/status:command:OFF:0]"}
+Switch Socket2_Power_Switch 				{mqtt=">[mosquitto:/MasterCore.X2/status:command:ON:1],>[mosquitto:/MasterCore.X2/status:command:OFF:0]"}
+Switch Socket3_Power_Switch 				{mqtt=">[mosquitto:/MasterCore.X3/status:command:ON:1],>[mosquitto:/MasterCore.X3/status:command:OFF:0]"}
+
+// ###################################################################
+
 Switch Aircon_Switch
 Slider Aircon_Slider 
 
@@ -59,7 +47,12 @@ String Aircon_Version					{mqtt="<[mosquitto:/0x45/version:state:default]"}
 
 // ###################################################################
 
-Switch Environment_Power_Switch
+Number Temperature_Text 				{mqtt="<[mosquitto:/0x40/getTemperature:state:default]"}
+Number Humidity_Text 					{mqtt="<[mosquitto:/0x40/getHumidity:state:default]"}
+Number Smoke_Text 					{mqtt="<[mosquitto:/0x40/getSmoke:state:default]"}
+Number ComputedSmoke_Text 				{mqtt="<[mosquitto:/0x40/getComputedSmoke:state:default]"}
+Number CarbonMonoxide_Text 				{mqtt="<[mosquitto:/0x40/getCarbonMonoxide:state:default]"}
+Number ComputedCarbonMonoxide_Text 			{mqtt="<[mosquitto:/0x40/getComputedCarbonMonoxide:state:default]"}
 
 Switch Environment_isConnected 				{mqtt="<[mosquitto:/0x40/isConnected:command:ON:1],<[mosquitto:/0x40/isConnected:command:OFF:0]"}
 String Environment_Info					{mqtt="<[mosquitto:/0x40/version:state:default]"}
@@ -69,10 +62,8 @@ String Environment_Version				{mqtt="<[mosquitto:/0x40/version:state:default]"}
 
 // ###################################################################
 
-Switch Location_Power_Switch
+
 Switch Location_Switch
-Number Location_Selection_In
-Number Location_Selection_Out
 
 Number Latitude_Text 					{mqtt="<[mosquitto:owntracks/owntracks/owntracks:state:JSONPATH($.lat)]"}
 Number Longitude_Text 					{mqtt="<[mosquitto:owntracks/owntracks/owntracks:state:JSONPATH($.lon)]"}
@@ -85,10 +76,8 @@ String Location_Version					{mqtt="<[mosquitto:/0x25/version:state:default]"}
 
 // ###################################################################
 
-Switch Rain_Power_Switch
 Switch Rain_Switch
-Number Rain_Selection_In
-Number Rain_Selection_Out
+Number Rain_Text					{mqtt="<[mosquitto:/0x35/getRain:state:default]"}
 
 Switch Rain_isConnected					{mqtt="<[mosquitto:/0x35/isConnected:command:ON:1],<[mosquitto:/0x35/isConnected:command:OFF:0]"}
 String Rain_Info					{mqtt="<[mosquitto:/0x35/version:state:default]"}
@@ -98,10 +87,7 @@ String Rain_Version					{mqtt="<[mosquitto:/0x35/version:state:default]"}
 
 // ###################################################################
 
-Switch Weather_Power_Switch
 Switch Weather_Switch
-Number Weather_Selection_In
-Number Weather_Selection_Out
 
 Switch Weather_isConnected 				{mqtt="<[mosquitto:/0x30/isConnected:command:ON:1],<[mosquitto:/0x30/isConnected:command:OFF:0]"}
 String Weather_Info					{mqtt="<[mosquitto:/0x30/version:state:default]"}

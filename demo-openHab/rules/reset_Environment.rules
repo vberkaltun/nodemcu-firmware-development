@@ -8,10 +8,8 @@ rule "reset_Environment_Power_Switch"
 	when
 		Item Environment_isConnected changed
 	then
-		postUpdate(Environment_Power_Switch,Environment_isConnected.state)
-
 		if(Environment_isConnected.state == OFF)
-			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
+			sendNotification("vberkaltun@msn.com","Ortam Değişkenleri aygıtı sisteminizden güvenle kaldırıldı!")
 		else
-			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt bağlandı!")
+			sendNotification("vberkaltun@msn.com","Ortam Değişkenleri aygıtı sisteminize bağlandı!")
 	end

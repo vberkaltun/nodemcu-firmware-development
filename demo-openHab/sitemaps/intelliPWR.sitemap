@@ -4,7 +4,7 @@
 // ###################################################################
 // ###################################################################
 
-sitemap intelliPWR label="intelliPWR" {
+sitemap intelliPWR label="intelliPWR" icon="i_pau.png" {
 
 	Frame label="Aydınlatmalar" visibility=[Light_Switch_Check==ON] {
 		Text item=Lights_Logical label="Otomatik Aydınlatmalar" icon="i_light.png" visibility=[Logical_Switch_Check==ON] {
@@ -22,25 +22,23 @@ sitemap intelliPWR label="intelliPWR" {
 
 	// ###################################################################
 
-	Frame label="Prizler" visibility=[Socket_Switch_Check==ON] {
-		Switch item=Aircon_Power_Switch 				label="Havalandırma" 		icon="i_power-off.png"		visibility=[Aircon_isConnected==ON]
-		Switch item=Environment_Power_Switch 				label="Ortam Değişkenleri" 	icon="i_power-off.png"		visibility=[Environment_isConnected==ON]
-		Switch item=Location_Power_Switch 				label="Konum" 			icon="i_power-off.png"		visibility=[Location_isConnected==ON]
-		Switch item=Rain_Power_Switch 					label="Yağmur Sensörü" 		icon="i_power-off.png"		visibility=[Rain_isConnected==ON]
-		Switch item=Weather_Power_Switch 				label="Hava Sensörü" 		icon="i_power-off.png"		visibility=[Weather_isConnected==ON]
+	Frame label="Prizler" {
+		Switch item=Socket1_Power_Switch 				label="Priz 1" 			icon="i_power-off.png"		visibility=[Socket1_isConnected==ON]
+		Switch item=Socket2_Power_Switch 				label="Priz 2" 			icon="i_power-off.png"		visibility=[Socket2_isConnected==ON]
+		Switch item=Socket3_Power_Switch 				label="Priz 3" 			icon="i_power-off.png"		visibility=[Socket3_isConnected==ON]
 	}
 
 	// ###################################################################
 	// ### OTHERS ########################################################
 	// ###################################################################
 
-	Frame label="Havalandırma" visibility=[Aircon_Power_Switch==ON] {
+	Frame label="Havalandırma" visibility=[Aircon_isConnected==ON] {
 		Switch item=Aircon_Switch 					label="Havalandırma" 		icon="i_air-off.png"
 		Slider item=Aircon_Slider 					label="Hız" 			icon="i_speed.png" 		visibility=[Aircon_Switch==ON] 
 
 	}
 
-	Frame visibility=[Aircon_Power_Switch==ON] {
+	Frame visibility=[Aircon_isConnected==ON] {
 		Text item=Aircon_Info label="Donanım [%s]" icon="i_info.png"{
 			Text item=Aircon_Brand 					label="Marka [%s]" 		icon="i_info.png"
 			Text item=Aircon_Model 					label="Model [%s]" 		icon="i_info.png"
@@ -51,13 +49,16 @@ sitemap intelliPWR label="intelliPWR" {
 
 	// ###################################################################
 
-	Frame label="Ortam Değişkenleri" visibility=[Environment_Power_Switch==ON] {
-		Text item=InPressure_Text 					label="İç Basınç [%s]" 		icon="i_press2.png"
-		Text item=InTemperature_Text 					label="İç Sıcaklık [%s]" 	icon="i_press2.png"
-		Text item=InHumidity_Text 					label="İç Nem [%s]" 		icon="i_press2.png"
+	Frame label="Ortam Değişkenleri" visibility=[Environment_isConnected==ON] {
+		Text item=Temperature_Text 					label="Sıcaklık [%d °]" 	icon="i_press2.png"
+		Text item=Humidity_Text 					label="Nem [%d RH]" 		icon="i_press2.png"
+		Text item=Smoke_Text 						label="Duman [%d PPM]" 		icon="i_press2.png"
+		Text item=ComputedSmoke_Text 					label="Duman [%d PPM/C]" 	icon="i_press2.png"
+		Text item=CarbonMonoxide_Text 					label="Karbonmonoksit [%d CO]" 	icon="i_press2.png"
+		Text item=ComputedCarbonMonoxide_Text 				label="Karbonmonoksit [%d CO/C]"icon="i_press2.png"
 	}
 
-	Frame visibility=[Environment_Power_Switch==ON] {
+	Frame visibility=[Environment_isConnected==ON] {
 		Text item=Environment_Info label="Donanım [%s]" icon="i_info.png"{
 			Text item=Environment_Brand 				label="Marka [%s]" 		icon="i_info.png"
 			Text item=Environment_Model 				label="Model [%s]" 		icon="i_info.png"
@@ -67,37 +68,12 @@ sitemap intelliPWR label="intelliPWR" {
 
 	// ###################################################################
 
-	Frame label="Konum" visibility=[Location_Power_Switch==ON] {
+	Frame label="Konum" visibility=[Location_isConnected==ON] {
 		Text item=Latitude_Text 					label="Enlem [%.5f °]" 	icon="i_map.png"
 		Text item=Longitude_Text 					label="Boylam [%.5f °]" 	icon="i_map.png"
 	}
 
-	Frame visibility=[Location_Power_Switch==ON] {
-		Switch item=Location_Switch 					label="Senaryo Uygula" 		icon="i_success.png"
-		Selection item=Location_Selection_In 				label="Eğer Koşul ise..." 	icon="i_run.png" 		visibility=[Location_Switch==ON] 
-		mappings=[0="100 Metre içinde", 1="400 Metre içinde", 2="1600 Metre içinde", 3="6400 Metre içinde", 4="25600 Metre içinde"]
-
-		Text item=Location_Selection_Out label="Uygula..." icon="i_run.png" visibility=[Location_Switch==ON] {
-			Frame label="Aydınlatmalar" visibility=[Logical_Switch_Check==ON] {
-				Text item=Lights_Logical label="Otomatik Aydınlatmalar" icon="i_light.png" visibility=[Logical_Switch_Check==ON] {
-					Switch item=Sub1_to_Logical1_Switch 	label="Tavan Lambası" 		icon="i_light-off.png" 		visibility=[Logical1_isConnected==ON]
-					Switch item=Sub1_to_Logical2_Switch 	label="Tavan Lambası" 		icon="i_light-off.png" 		visibility=[Logical2_isConnected==ON]
-				}
-				Text item=Lights_Led label="Led Aydınlatmalar" icon="i_light.png" visibility=[Led_Switch_Check==ON] {
-					Switch item=Sub1_to_Led1_Switch 	label="Palet Uygula" 		icon="i_success.png" 		visibility=[Led1_isConnected==ON]
-					Colorpicker item=Sub1_to_Led1_Color 	label="Palet" 			icon="i_color.png" 		visibility=[Sub1_to_Led1_Switch==ON]
-					Switch item=Sub1_to_Led2_Switch 	label="Palet Uygula" 		icon="i_success.png" 		visibility=[Led2_isConnected==ON]
-					Colorpicker item=Sub1_to_Led2_Color 	label="Palet" 			icon="i_color.png" 		visibility=[Sub1_to_Led2_Switch==ON]
-				}
-			}
-			Frame label="Havalandırma" visibility=[Aircon_isConnected==ON] {
-				Switch item=Sub1_to_Aircon_Switch 		label="Havalandırma" 		icon="i_air-off.png" 		
-				Slider item=Sub1_to_Aircon_Slider 		label="Hız" 			icon="i_speed.png" 		visibility=[Sub_to_Aircon_Switch==ON]
-			}
-		}
-	}
-
-	Frame visibility=[Location_Power_Switch==ON] {
+	Frame visibility=[Location_isConnected==ON] {
 		Text item=Location_Info label="Donanım [%s]" icon="i_info.png"{
 			Text item=Location_Brand 				label="Marka [%s]" 		icon="i_info.png"
 			Text item=Location_Model 				label="Model [%s] " 		icon="i_info.png"
@@ -107,81 +83,15 @@ sitemap intelliPWR label="intelliPWR" {
 
 	// ###################################################################
 
-	Frame label="Yağmur Sensörü" visibility=[Rain_Power_Switch==ON] {
-		Text item=Rain_Text 						label="Yağış Oranı [%s %%]" 	icon="i_drop.png"
+	Frame label="Yağmur Sensörü" visibility=[Rain_isConnected==ON] {
+		Text item=Rain_Text 						label="Yağış Oranı [%d %%]" 	icon="i_drop.png"
 	}
 
-	Frame visibility=[Rain_Power_Switch==ON] {
-		Switch item=Rain_Switch 					label="Senaryo Uygula" 		icon="i_success.png"
-		Selection item=Rain_Selection_In 				label="Eğer Koşul ise..." 	icon="i_run.png" 		visibility=[Rain_Switch==ON] 
-		mappings=[0="Yağmur oranı %0", 1="Yağmur oranı %25", 2="Yağmur oranı %50", 3="Yağmur oranı %75", 4="Yağmur oranı %100"]
-
-		Text item=Location_Selection_Out label="Uygula..." icon="i_run.png" visibility=[Rain_Switch==ON] {
-			Frame label="Aydınlatmalar" visibility=[Logical_Switch_Check==ON] {
-				Text item=Lights_Logical label="Otomatik Aydınlatmalar" icon="i_light.png" visibility=[Logical_Switch_Check==ON] {
-					Switch item=Sub2_to_Logical1_Switch 	label="Tavan Lambası" 		icon="i_light-off.png" 		visibility=[Logical1_isConnected==ON]
-					Switch item=Sub2_to_Logical2_Switch 	label="Tavan Lambası" 		icon="i_light-off.png" 		visibility=[Logical2_isConnected==ON]
-				}
-				Text item=Lights_Led label="Led Aydınlatmalar" icon="i_light.png" visibility=[Led_Switch_Check==ON] {
-					Switch item=Sub2_to_Led1_Switch 	label="Palet Uygula" 		icon="i_success.png" 		visibility=[Led1_isConnected==ON]
-					Colorpicker item=Sub2_to_Led1_Color 	label="Palet" 			icon="i_color.png" 		visibility=[Sub2_to_Led1_Switch==ON]
-					Switch item=Sub2_to_Led2_Switch 	label="Palet Uygula" 		icon="i_success.png" 		visibility=[Led2_isConnected==ON]
-					Colorpicker item=Sub2_to_Led2_Color 	label="Palet" 			icon="i_color.png" 		visibility=[Sub2_to_Led2_Switch==ON]
-				}
-			}
-			Frame label="Havalandırma" visibility=[Aircon_isConnected==ON] {
-				Switch item=Sub2_to_Aircon_Switch 		label="Havalandırma" 		icon="i_air-off.png" 		
-				Slider item=Sub2_to_Aircon_Slider 		label="Hız" 			icon="i_speed.png" 		visibility=[Sub_to_Aircon_Switch==ON]
-			}
-		}
-	}
-
-	Frame visibility=[Rain_Power_Switch==ON] {
+	Frame visibility=[Rain_isConnected==ON] {
 		Text item=Rain_Info label="Donanım [%s]" icon="i_info.png"{
 			Text item=Rain_Brand 					label="Marka [%s]" 		icon="i_info.png"
 			Text item=Rain_Model 					label="Model [%s]" 		icon="i_info.png"
 			Text item=Rain_Version 					label="Versiyon [%s]" 		icon="i_info.png"
-		}
-	}
-
-	// ###################################################################
-
-	Frame label="Hava Sensörü" visibility=[Weather_Power_Switch==ON] {
-		Text item=Pollution_Text 					label="Kirlilik [%s]" 		icon="i_burn.png"
-		Text item=Propan_Text 						label="Propan [%s]" 		icon="i_burn.png"
-		Text item=Metan_Text 						label="Metan [%s]" 		icon="i_burn.png"
-	}
-
-	Frame visibility=[Weather_Power_Switch==ON] {
-		Switch item=Weather_Switch 					label="Senaryo Uygula" 		icon="i_success.png"
-		Selection item=Weather_Selection_In 				label="Eğer Koşul ise..." 	icon="i_run.png" 		visibility=[Weather_Switch==ON] 
-		mappings=[0="Kirlilik oranı %0", 1="Kirlilik oranı %25", 2="Kirlilik oranı %50", 3="Kirlilik oranı %75", 4="Kirlilik oranı %100"]
-
-		Text item=Location_Selection_Out label="Uygula..." icon="i_run.png" visibility=[Weather_Switch==ON] {
-			Frame label="Aydınlatmalar" visibility=[Logical_Switch_Check==ON] {
-				Text item=Lights_Logical label="Otomatik Aydınlatmalar" icon="i_light.png" visibility=[Logical_Switch_Check==ON] {
-					Switch item=Sub3_to_Logical1_Switch 	label="Tavan Lambası" 		icon="i_light-off.png" 		visibility=[Logical1_isConnected==ON]
-					Switch item=Sub3_to_Logical2_Switch 	label="Tavan Lambası" 		icon="i_light-off.png" 		visibility=[Logical2_isConnected==ON]
-				}
-				Text item=Lights_Led label="Led Aydınlatmalar" icon="i_light.png" visibility=[Led_Switch_Check==ON] {
-					Switch item=Sub3_to_Led1_Switch 	label="Palet Uygula" 		icon="i_success.png" 		visibility=[Led1_isConnected==ON]
-					Colorpicker item=Sub3_to_Led1_Color 	label="Palet" 			icon="i_color.png" 		visibility=[Sub3_to_Led1_Switch==ON]
-					Switch item=Sub3_to_Led2_Switch 	label="Palet Uygula" 		icon="i_success.png" 		visibility=[Led2_isConnected==ON]
-					Colorpicker item=Sub3_to_Led2_Color 	label="Palet" 			icon="i_color.png" 		visibility=[Sub3_to_Led2_Switch==ON]
-				}
-			}
-			Frame label="Havalandırma" visibility=[Aircon_isConnected==ON] {
-				Switch item=Sub3_to_Aircon_Switch 		label="Havalandırma" 		icon="i_air-off.png" 		
-				Slider item=Sub3_to_Aircon_Slider 		label="Hız" 			icon="i_speed.png" 		visibility=[Sub_to_Aircon_Switch==ON]
-			}
-		}
-	}
-
-	Frame visibility=[Weather_Power_Switch==ON] {
-		Text item=Weather_Info label="Donanım [%s]" icon="i_info.png"{
-			Text item=Weather_Brand 				label="Marka [%s]" 		icon="i_info.png"
-			Text item=Weather_Model 				label="Model [%s]" 		icon="i_info.png"
-			Text item=Weather_Version 				label="Versiyon [%s]" 		icon="i_info.png"
 		}
 	}
 }

@@ -8,17 +8,8 @@ rule "reset_Aircon_Power_Switch"
 	when
 		Item Aircon_isConnected changed
 	then
-		postUpdate(Aircon_Power_Switch,Aircon_isConnected.state)
-		
 		if(Aircon_isConnected.state == OFF)
-			sendNotification("vberkaltun@msn.com","Sisteminizden bir aygıt güvenle kaldırıldı!")
+			sendNotification("vberkaltun@msn.com","Havalandırma aygıtı sisteminizden güvenle kaldırıldı!")
 		else
-			sendNotification("vberkaltun@msn.com","Sisteminize yeni bir aygıt bağlandı!")
-	end
-
-rule "reset_Aircon_Power_Switch"
-	when
-		Item Aircon_Power_Switch changed
-	then
-		postUpdate(Aircon_Switch,OFF)
+			sendNotification("vberkaltun@msn.com","Havalandırma aygıtı sisteminize bağlandı!")
 	end

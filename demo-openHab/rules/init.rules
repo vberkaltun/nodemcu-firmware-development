@@ -4,12 +4,17 @@
 // ###################################################################
 // ###################################################################
 
-rule "reset_Rain_Power_Switch"
+rule "init"
 	when
-		Item Rain_isConnected changed
+    		System started
 	then
-		if(Rain_isConnected.state == OFF)
-			sendNotification("vberkaltun@msn.com","Yağmur Sensörü aygıtı sisteminizden güvenle kaldırıldı!")
-		else
-			sendNotification("vberkaltun@msn.com","Yağmur Sensörü aygıtı sisteminize bağlandı!")
+		postUpdate(Logical1_isConnected,ON)
+		postUpdate(Logical2_isConnected,ON)
+		postUpdate(Led1_isConnected,ON)
+		postUpdate(Led2_isConnected,ON)
+		postUpdate(Aircon_isConnected,OFF)
+		postUpdate(Environment_isConnected,OFF)
+		postUpdate(Location_isConnected,OFF)
+		postUpdate(Rain_isConnected,OFF)
+		postUpdate(Weather_isConnected,OFF)
 	end
