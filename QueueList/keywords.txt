@@ -1,0 +1,37 @@
+########################################
+# Syntax Coloring Map For Wire
+########################################
+
+########################################
+# Datatypes (KEYWORD1)
+########################################
+
+########################################
+# Methods and Functions (KEYWORD2)
+########################################
+
+pushFront			KEYWORD2
+pushBack			KEYWORD2
+
+popFront			KEYWORD2
+popBack				KEYWORD2
+
+front				KEYWORD2
+back				KEYWORD2
+
+get				KEYWORD2
+size				KEYWORD2
+clear				KEYWORD2
+at				KEYWORD2
+length				KEYWORD2
+indexof				KEYWORD2
+
+########################################
+# Instances (KEYWORD2)
+########################################
+
+QueueList			KEYWORD2
+
+########################################
+# Constants (LITERAL1)
+########################################
