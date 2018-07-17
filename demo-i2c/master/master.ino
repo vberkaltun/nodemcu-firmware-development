@@ -1,18 +1,26 @@
 #include <Wire.h>
+
 #include <Serializer.h>
-#include <QueueList.h>
 #include <MasterScanner.h>
 #include <TimerQueue.h>
 
+#include <QueueList.h>
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
+
 #include <pins_arduino.h>
 #include <user_interface.h>
 
 // IMPORTANT NOTICE: These all constant is related with your
 // MQTT server and WiFi protocol. In additional, at the here, we are
 // Using cloudMQTT server for communication
+#define MQTT_USER "zoigztfs"
+#define MQTT_PASSWORD "JBr9hkq2N6wN"
+#define MQTT_SERVER " m23.cloudmqtt.com"
+#define MQTT_PORT 12776
+#define WIFI_SSID "altun6423"
+#define WIFI_PASSWORD "e9v3y2n24a21"
 
 // IMPORTANT NOTICE: These all constant is depending on your protocol
 // As you can see, this protocol delimiter was declared in this scope
