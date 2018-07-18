@@ -5,4 +5,3 @@ NodeMCU	custom build by frightanic.com
 	modules: file,gpio,net,node,tmr,uart,wifi
 build 	built on: 2018-02-24 13:16
 powered	by Lua 5.1.4 on SDK 2.1.0(116b762)
-
