@@ -1,10 +1,10 @@
-# Testing
+### Testing
 
 This article is about the connection testing of intelliPWR project. On the implementation steps, you must individually check the all step that given at below for avoiding the un-solicited status If you can pass all these steps, that's mean your device can work as very well on this project.
 
 Otherwise, it will make a BOOM!
 
-### How to test an Slave and Master Device?
+#### How to test an Slave and Master Device?
 
 It is so easy. The table is below. Check them all.
 
