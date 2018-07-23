@@ -38,4 +38,6 @@ Otherwise, OTA library cannot start internet communication with your device.
 **`Erase Flash:`** | Sketch + WiFi Settings
 **`Port:`** | XXXXX at 255.255.255
 
+#### Contributor
+
 For more info, please follow [ESP8266 Arduino Core Documentation](http://esp8266.github.io/Arduino/versions/2.0.0/doc/ota_updates/ota_updates.html).
