@@ -27,7 +27,7 @@
 // That's mean, all function will use this delimiter constant on
 // Communication between two or more devices
 #define DEVICE_BRAND "intelliPWR Incorporated"
-#define DEVICE_MODEL "MasterCore.X1"
+#define DEVICE_MODEL "MasterCore.XX"
 #define DEVICE_VERSION "VER 1.0.0"
 
 // // IMPORTANT NOTICE: We must redeclare our bus range because of
