@@ -1152,8 +1152,14 @@ bool encodeData(unsigned short sizeofData, char data[]) {
   for (unsigned short index = 0; index < sizeofGivenBuffer; index++) {
 
     unsigned short subIndex;
-    unsigned short upperBound = DIVISOR_NUMBER;
+    unsigned short upperBound = 0;
 
+    // Calculate maximum upperbound of iterator
+    if (modulusofGivenBuffer != 0 && index == sizeofGivenBuffer - 1)
+      upperBound = modulusofGivenBuffer;
+    else
+      upperBound = DIVISOR_NUMBER;
+      
     // Change upper bound if module is available and index is on the last one
     if (index == sizeofGivenBuffer - 1 && modulusofGivenBuffer != 0)
       upperBound = modulusofGivenBuffer;
