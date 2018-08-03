@@ -1152,7 +1152,11 @@ bool encodeData(unsigned short sizeofData, char data[]) {
   for (unsigned short index = 0; index < sizeofGivenBuffer; index++) {
 
     unsigned short subIndex;
-    unsigned short upperBound = (index == sizeofGivenBuffer - 1 ? modulusofGivenBuffer : DIVISOR_NUMBER);
+    unsigned short upperBound = DIVISOR_NUMBER;
+
+    // Change upper bound if module is available and index is on the last one
+    if (index == sizeofGivenBuffer - 1 && modulusofGivenBuffer != 0)
+      upperBound = modulusofGivenBuffer;
 
     for (subIndex = 0; subIndex < upperBound; subIndex++)
       givenBuffer[index][subIndex + 1] = data[(index * DIVISOR_NUMBER) + subIndex];
