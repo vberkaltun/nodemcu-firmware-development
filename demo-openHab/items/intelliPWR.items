@@ -7,8 +7,8 @@
 Switch Light_Switch_Check
 Switch Socket_Switch_Check
 
-Colorpicker Led1_Color
-Colorpicker Led2_Color
+Color Led1_Color
+Color Led2_Color
 
 // ###################################################################
 
@@ -37,7 +37,7 @@ Switch Socket3_Power_Switch 				{mqtt=">[mosquitto:/MasterCore.X3/status:command
 // ###################################################################
 
 Switch Aircon_Switch
-Slider Aircon_Slider 
+Number Aircon_Slider  
 
 Switch Aircon_isConnected 				{mqtt="<[mosquitto:/0x45/isConnected:command:ON:1],<[mosquitto:/0x45/isConnected:command:OFF:0]"}
 String Aircon_Info					{mqtt="<[mosquitto:/0x45/version:state:default]"}

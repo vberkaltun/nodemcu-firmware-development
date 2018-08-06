@@ -53,9 +53,7 @@ sitemap intelliPWR label="intelliPWR" icon="i_pau.png" {
 		Text item=Temperature_Text 					label="Sıcaklık [%d °]" 	icon="i_press2.png"
 		Text item=Humidity_Text 					label="Nem [%d RH]" 		icon="i_press2.png"
 		Text item=Smoke_Text 						label="Duman [%d PPM]" 		icon="i_press2.png"
-		Text item=ComputedSmoke_Text 					label="Duman [%d PPM/C]" 	icon="i_press2.png"
 		Text item=CarbonMonoxide_Text 					label="Karbonmonoksit [%d CO]" 	icon="i_press2.png"
-		Text item=ComputedCarbonMonoxide_Text 				label="Karbonmonoksit [%d CO/C]"icon="i_press2.png"
 	}
 
 	Frame visibility=[Environment_isConnected==ON] {
