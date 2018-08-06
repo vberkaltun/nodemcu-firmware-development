@@ -92,9 +92,12 @@ void receiveEvent(unsigned short sizeofData) {
   }
 
   // -----
-
-  if (!decodeData(indexofNewReceivedBuffer, newReceivedBuffer))
+  
+  // If everything goes well, we will arrive here and decode it
+  if (indexofNewReceivedBuffer <= PROTOCOL_DELIMITERS_SIZE)
     unknownEvent(indexofNewReceivedBuffer, newReceivedBuffer);
+  else
+    decodeData(indexofNewReceivedBuffer, newReceivedBuffer);
 
   // Do not forget to free up local data
   free(newReceivedBuffer);
