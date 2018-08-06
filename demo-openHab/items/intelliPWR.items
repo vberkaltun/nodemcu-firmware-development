@@ -16,8 +16,8 @@ Switch Logical_Switch_Check
 Switch Logical1_Switch
 Switch Logical2_Switch
 
-Switch Logical1_isConnected				{mqtt="<[mosquitto:/0x50/isConnected:command:ON:1],<[mosquitto:/0x50/isConnected:command:OFF:0]"}
-Switch Logical2_isConnected				{mqtt="<[mosquitto:/0x51/isConnected:command:ON:1],<[mosquitto:/0x51/isConnected:command:OFF:0]"}
+Switch Logical1_isConnected					{mqtt="<[mosquitto:/0x50/isConnected:command:ON:1],<[mosquitto:/0x50/isConnected:command:OFF:0]"}
+Switch Logical2_isConnected					{mqtt="<[mosquitto:/0x51/isConnected:command:ON:1],<[mosquitto:/0x51/isConnected:command:OFF:0]"}
 
 // ###################################################################
 
@@ -25,8 +25,8 @@ Switch Led_Switch_Check
 Switch Led1_Switch
 Switch Led2_Switch
 
-Switch Led1_isConnected					{mqtt="<[mosquitto:/0x52/isConnected:command:ON:1],<[mosquitto:/0x52/isConnected:command:OFF:0]"}
-Switch Led2_isConnected					{mqtt="<[mosquitto:/0x53/isConnected:command:ON:1],<[mosquitto:/0x53/isConnected:command:OFF:0]"}
+Switch Led1_isConnected						{mqtt="<[mosquitto:/0x52/isConnected:command:ON:1],<[mosquitto:/0x52/isConnected:command:OFF:0]"}
+Switch Led2_isConnected						{mqtt="<[mosquitto:/0x53/isConnected:command:ON:1],<[mosquitto:/0x53/isConnected:command:OFF:0]"}
 
 // ###################################################################
 
@@ -36,62 +36,62 @@ Switch Socket3_Power_Switch 				{mqtt=">[mosquitto:/MasterCore.X3/status:command
 
 // ###################################################################
 
-Switch Aircon_Switch
-Number Aircon_Slider  
+Switch Aircon_Switch 						{mqtt=">[mosquitto:/0x45/setSpeed:command:ON:1],>[mosquitto:/0x45/setSpeed:command:OFF:0]"}
+Dimmer Aircon_Slider 						{mqtt=">[mosquitto:/0x45/setSpeed:command:*:default]"}
 
-Switch Aircon_isConnected 				{mqtt="<[mosquitto:/0x45/isConnected:command:ON:1],<[mosquitto:/0x45/isConnected:command:OFF:0]"}
-String Aircon_Info					{mqtt="<[mosquitto:/0x45/version:state:default]"}
-String Aircon_Brand					{mqtt="<[mosquitto:/0x45/brand:state:default]"}
-String Aircon_Model					{mqtt="<[mosquitto:/0x45/model:state:default]"}
-String Aircon_Version					{mqtt="<[mosquitto:/0x45/version:state:default]"}
+Switch Aircon_isConnected 					{mqtt="<[mosquitto:/0x45/isConnected:command:ON:1],<[mosquitto:/0x45/isConnected:command:OFF:0]"}
+String Aircon_Info 							{mqtt="<[mosquitto:/0x45/version:state:default]"}
+String Aircon_Brand 						{mqtt="<[mosquitto:/0x45/brand:state:default]"}
+String Aircon_Model 						{mqtt="<[mosquitto:/0x45/model:state:default]"}
+String Aircon_Version 						{mqtt="<[mosquitto:/0x45/version:state:default]"}
 
 // ###################################################################
 
-Number Temperature_Text 				{mqtt="<[mosquitto:/0x40/getTemperature:state:default]"}
-Number Humidity_Text 					{mqtt="<[mosquitto:/0x40/getHumidity:state:default]"}
-Number Smoke_Text 					{mqtt="<[mosquitto:/0x40/getSmoke:state:default]"}
-Number ComputedSmoke_Text 				{mqtt="<[mosquitto:/0x40/getComputedSmoke:state:default]"}
-Number CarbonMonoxide_Text 				{mqtt="<[mosquitto:/0x40/getCarbonMonoxide:state:default]"}
+Number Temperature_Text 					{mqtt="<[mosquitto:/0x40/getTemperature:state:default]"}
+Number Humidity_Text 						{mqtt="<[mosquitto:/0x40/getHumidity:state:default]"}
+Number Smoke_Text 							{mqtt="<[mosquitto:/0x40/getSmoke:state:default]"}
+Number ComputedSmoke_Text 					{mqtt="<[mosquitto:/0x40/getComputedSmoke:state:default]"}
+Number CarbonMonoxide_Text 					{mqtt="<[mosquitto:/0x40/getCarbonMonoxide:state:default]"}
 Number ComputedCarbonMonoxide_Text 			{mqtt="<[mosquitto:/0x40/getComputedCarbonMonoxide:state:default]"}
 
 Switch Environment_isConnected 				{mqtt="<[mosquitto:/0x40/isConnected:command:ON:1],<[mosquitto:/0x40/isConnected:command:OFF:0]"}
-String Environment_Info					{mqtt="<[mosquitto:/0x40/version:state:default]"}
-String Environment_Brand				{mqtt="<[mosquitto:/0x40/brand:state:default]"}
-String Environment_Model				{mqtt="<[mosquitto:/0x40/model:state:default]"}
-String Environment_Version				{mqtt="<[mosquitto:/0x40/version:state:default]"}
+String Environment_Info 					{mqtt="<[mosquitto:/0x40/version:state:default]"}
+String Environment_Brand 					{mqtt="<[mosquitto:/0x40/brand:state:default]"}
+String Environment_Model 					{mqtt="<[mosquitto:/0x40/model:state:default]"}
+String Environment_Version 					{mqtt="<[mosquitto:/0x40/version:state:default]"}
 
 // ###################################################################
 
 
 Switch Location_Switch
 
-Number Latitude_Text 					{mqtt="<[mosquitto:owntracks/owntracks/owntracks:state:JSONPATH($.lat)]"}
-Number Longitude_Text 					{mqtt="<[mosquitto:owntracks/owntracks/owntracks:state:JSONPATH($.lon)]"}
+Number Latitude_Text 						{mqtt="<[mosquitto:owntracks/owntracks/owntracks:state:JSONPATH($.lat)]"}
+Number Longitude_Text 						{mqtt="<[mosquitto:owntracks/owntracks/owntracks:state:JSONPATH($.lon)]"}
 
 Switch Location_isConnected 				{mqtt="<[mosquitto:/0x25/isConnected:command:ON:1],<[mosquitto:/0x25/isConnected:command:OFF:0]"}
-String Location_Info					{mqtt="<[mosquitto:/0x25/version:state:default]"}
-String Location_Brand					{mqtt="<[mosquitto:/0x25/brand:state:default]"}
-String Location_Model					{mqtt="<[mosquitto:/0x25/model:state:default]"}
-String Location_Version					{mqtt="<[mosquitto:/0x25/version:state:default]"}
+String Location_Info						{mqtt="<[mosquitto:/0x25/version:state:default]"}
+String Location_Brand						{mqtt="<[mosquitto:/0x25/brand:state:default]"}
+String Location_Model						{mqtt="<[mosquitto:/0x25/model:state:default]"}
+String Location_Version						{mqtt="<[mosquitto:/0x25/version:state:default]"}
 
 // ###################################################################
 
 Switch Rain_Switch
-Number Rain_Text					{mqtt="<[mosquitto:/0x35/getRain:state:default]"}
+Number Rain_Text							{mqtt="<[mosquitto:/0x35/getRain:state:default]"}
 
-Switch Rain_isConnected					{mqtt="<[mosquitto:/0x35/isConnected:command:ON:1],<[mosquitto:/0x35/isConnected:command:OFF:0]"}
-String Rain_Info					{mqtt="<[mosquitto:/0x35/version:state:default]"}
-String Rain_Brand					{mqtt="<[mosquitto:/0x35/brand:state:default]"}
-String Rain_Model					{mqtt="<[mosquitto:/0x35/model:state:default]"}
-String Rain_Version					{mqtt="<[mosquitto:/0x35/version:state:default]"}
+Switch Rain_isConnected						{mqtt="<[mosquitto:/0x35/isConnected:command:ON:1],<[mosquitto:/0x35/isConnected:command:OFF:0]"}
+String Rain_Info							{mqtt="<[mosquitto:/0x35/version:state:default]"}
+String Rain_Brand							{mqtt="<[mosquitto:/0x35/brand:state:default]"}
+String Rain_Model							{mqtt="<[mosquitto:/0x35/model:state:default]"}
+String Rain_Version							{mqtt="<[mosquitto:/0x35/version:state:default]"}
 
 // ###################################################################
 
 Switch Weather_Switch
 
-Switch Weather_isConnected 				{mqtt="<[mosquitto:/0x30/isConnected:command:ON:1],<[mosquitto:/0x30/isConnected:command:OFF:0]"}
-String Weather_Info					{mqtt="<[mosquitto:/0x30/version:state:default]"}
-String Weather_Brand					{mqtt="<[mosquitto:/0x30/brand:state:default]"}
-String Weather_Model					{mqtt="<[mosquitto:/0x30/model:state:default]"}
-String Weather_Version					{mqtt="<[mosquitto:/0x30/version:state:default]"}
+Switch Weather_isConnected 					{mqtt="<[mosquitto:/0x30/isConnected:command:ON:1],<[mosquitto:/0x30/isConnected:command:OFF:0]"}
+String Weather_Info							{mqtt="<[mosquitto:/0x30/version:state:default]"}
+String Weather_Brand						{mqtt="<[mosquitto:/0x30/brand:state:default]"}
+String Weather_Model						{mqtt="<[mosquitto:/0x30/model:state:default]"}
+String Weather_Version						{mqtt="<[mosquitto:/0x30/version:state:default]"}
 
