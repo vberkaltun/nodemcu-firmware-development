@@ -35,7 +35,6 @@ sitemap intelliPWR label="intelliPWR" icon="i_pau.png" {
 	Frame label="Havalandırma" visibility=[Aircon_isConnected==ON] {
 		Switch item=Aircon_Switch 					label="Havalandırma" 		icon="i_air-off.png"
 		Slider item=Aircon_Slider 					label="Hız" 			icon="i_speed.png" 		visibility=[Aircon_Switch==ON] 
-
 	}
 
 	Frame visibility=[Aircon_isConnected==ON] {
