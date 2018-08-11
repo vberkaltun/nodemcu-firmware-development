@@ -1,0 +1,16 @@
+import java.awt.Color
+
+rule "set_Led1"
+	when
+		Item Led1_Color changed
+	then
+		var HSBType hsbValue = Led1_Color.state as HSBType
+		var int redValue = hsbValue.red.intValue
+		var int greenValue = hsbValue.green.intValue
+		var int blueValue = hsbValue.blue.intValue
+		var int hueValue = hsbValue.hue.intValue
+		var int saturationValue = hsbValue.saturation.intValue
+		var int brightnessValue = hsbValue.brightness.intValue
+
+		postUpdate(Led1_RGB, redValue + " " + greenValue + " " + blueValue + " " + hueValue + " " + saturationValue + " " + brightnessValue)
+end
