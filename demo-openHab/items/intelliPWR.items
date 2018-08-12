@@ -10,8 +10,10 @@ Switch Logical_Switch_Check
 
 // ###################################################################
 
-Switch Logical1_Switch 						{mqtt=">[mosquitto:/Logical1/status:command:ON:1],>[mosquitto:/Logical1/status:command:OFF:0]"}
-Switch Logical2_Switch 						{mqtt=">[mosquitto:/Logical2/status:command:ON:1],>[mosquitto:/Logical2/status:command:OFF:0]"}
+Switch Logical1_Switch 						{mqtt=">[mosquitto:/Logical1/status:command:ON:1],>[mosquitto:/Logical1/status:command:OFF:0],
+												<[mosquitto:/Logical1/trigger:command:ON:1],<[mosquitto:/Logical1/trigger:command:OFF:0]"}
+Switch Logical2_Switch 						{mqtt=">[mosquitto:/Logical2/status:command:ON:1],>[mosquitto:/Logical2/status:command:OFF:0],
+												<[mosquitto:/Logical2/trigger:command:ON:1],<[mosquitto:/Logical2/trigger:command:OFF:0]"}
 
 Switch Logical1_isConnected					{mqtt="<[mosquitto:/0x50/isConnected:command:ON:1],<[mosquitto:/0x50/isConnected:command:OFF:0]"}
 Switch Logical2_isConnected					{mqtt="<[mosquitto:/0x51/isConnected:command:ON:1],<[mosquitto:/0x51/isConnected:command:OFF:0]"}
