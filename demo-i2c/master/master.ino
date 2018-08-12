@@ -114,6 +114,11 @@ char *functionList[] = {"getVendors",
                         "getFunctionList"
                        };
 
+double colorBlack[3] = {0, 0, 0};
+double colorWhite[3] = {255, 255, 255};
+double colorBlue[3] = {0, 30, 255};
+double colorOrange[3] = {210, 30, 0};
+
 // -----
 
 // MQTT client objects, required for MQTT
@@ -124,29 +129,34 @@ PubSubClient mqttClient(MQTT_SERVER, MQTT_PORT, callBack, wifiClient);
 // TEMPORARILY, will be delete on release
 #define WIRE_BEGIN 0x01
 
-#define BLINK_FREQUENCY 1000
-#define BLINK_RANGE 200
 #define BLINK_R D6
-#define BLINK_GB D7
+#define BLINK_G D7
+#define BLINK_B D8
+
+#define BLINK_CLOCKRATE 1000
+#define BLINK_RANGE 200
+
 #define SSR D5
 
 void setup() {
 
-  // Set PWM frequency 500, default is 1000
-  analogWriteFreq(BLINK_FREQUENCY);
-
-  // Set range 0 ~ 100, default is 0 ~ 1023
-  analogWriteRange(BLINK_RANGE);
-
   // Initialize RGB port and device listen port
   pinMode(BLINK_R, OUTPUT);
-  pinMode(BLINK_GB, OUTPUT);
+  pinMode(BLINK_G, OUTPUT);
+  pinMode(BLINK_B, OUTPUT);
   pinMode(SSR, OUTPUT);
 
   // Reset pins
   analogWrite(BLINK_R, BLINK_RANGE);
-  analogWrite(BLINK_GB, BLINK_RANGE);
+  analogWrite(BLINK_G, BLINK_RANGE);
+  analogWrite(BLINK_B, BLINK_RANGE);
   digitalWrite(SSR, HIGH);
+
+  // Set PWM frequency 500, default is 1000
+  analogWriteFreq(BLINK_CLOCKRATE);
+
+  // Set range 0 ~ 100, default is 0 ~ 1023
+  analogWriteRange(BLINK_RANGE);
 
   // -----
 
@@ -320,7 +330,7 @@ void connectedSlaves(uint8_t data[], byte sizeofData) {
   Serial.println("\t ---");
 
   // Notify end user, status is device online
-  notifyBlink(0, Online);
+  setRGBStatus(Online);
 
   // -----
 
@@ -409,7 +419,7 @@ void disconnectedSlaves(uint8_t data[], byte sizeofData) {
   Serial.println("\t ---");
 
   // Notify end user, status is device online
-  notifyBlink(0, Offline);
+  setRGBStatus(Offline);
 
   // -----
 
@@ -679,91 +689,82 @@ void connectWiFi() {
   }
 }
 
-void notifyBlink(unsigned short port, enum notifyData status) {
+// -----
 
-  switch (status) {
-    case Online:
-      for (int index = 0; index < 3; index++) {
-        for (int subindex = BLINK_RANGE; subindex > 0; subindex--) {
-          analogWrite(BLINK_R, subindex);
-          analogWrite(BLINK_GB, subindex);
-          delay(1);
-        }
-        delay(400);
-        for (int subindex = 0; subindex < BLINK_RANGE; subindex++) {
-          analogWrite(BLINK_R, subindex);
-          analogWrite(BLINK_GB, subindex);
-          delay(2);
-        }
-        delay(800);
-      }
-      for (int index = BLINK_RANGE; index > 0; index--) {
-        analogWrite(BLINK_R, index);
-        analogWrite(BLINK_GB, index);
-        delay(1);
-      }
-      // Update last stored notify flag
-      notifyFlag = Online;
-      break;
+void setRGBStatus(notifyData status) {
 
+  switch (status)
+  {
     case Offline:
-      switch (notifyFlag) {
+      switch (notifyFlag)
+      {
         case Online:
-          for (int index = 0; index < BLINK_RANGE; index++) {
-            analogWrite(BLINK_R, index);
-            analogWrite(BLINK_GB, index);
-            delay(1);
-          }
+          changeRGBStatus(colorWhite, colorBlack, BLINK_RANGE, 4);
           break;
-
-        case Confirmed:
-          for (int index = 0; index < BLINK_RANGE; index++) {
-            analogWrite(BLINK_GB, index);
-            delay(1);
-          }
-          break;
-
         case Unconfirmed:
-          for (int index = 0; index < BLINK_RANGE; index++) {
-            analogWrite(BLINK_R, index);
-            delay(1);
-          }
+          changeRGBStatus(colorOrange, colorBlack, BLINK_RANGE, 4);
           break;
-
+        case Confirmed:
+          changeRGBStatus(colorBlue, colorBlack, BLINK_RANGE, 4);
+          break;
         default:
-          analogWrite(BLINK_R, BLINK_RANGE);
-          analogWrite(BLINK_GB, BLINK_RANGE);
           break;
       }
-      // Update last stored notify flag
-      notifyFlag = Offline;
       break;
 
-    case Confirmed:
-      for (int index = 0; index < BLINK_RANGE; index++) {
-        analogWrite(BLINK_R, index);
-        delay(1);
+    case Online:
+      for (int index = 0; index < 2; index++)
+      {
+        changeRGBStatus(colorBlack, colorWhite, BLINK_RANGE, 2);
+        delay(200);
+
+        changeRGBStatus(colorWhite, colorBlack, BLINK_RANGE, 4);
+        delay(500);
       }
-      // Update last stored notify flag
-      notifyFlag = Confirmed;
+      changeRGBStatus(colorBlack, colorWhite, BLINK_RANGE, 2);
       break;
 
     case Unconfirmed:
-      for (int index = BLINK_RANGE; index > 0; index--) {
-        analogWrite(BLINK_GB, index);
-        delay(1);
-      }
-      // Update last stored notify flag
-      notifyFlag = Unconfirmed;
+      changeRGBStatus(colorWhite, colorOrange, BLINK_RANGE, 2);
+      break;
+
+    case Confirmed:
+      changeRGBStatus(colorWhite, colorBlue, BLINK_RANGE, 2);
       break;
 
     default:
-      analogWrite(BLINK_R, BLINK_RANGE);
-      analogWrite(BLINK_GB, BLINK_RANGE);
-      // Update last stored notify flag
-      notifyFlag = Offline;
       break;
   }
+
+  // Do not forget to set RGB status
+  notifyFlag = status;
+}
+
+void changeRGBStatus(double sourceColor[], double targetColor[], int divider, int sleep) {
+
+  double tempTarget[3];
+  for (int index = 0; index < 3; index++)
+    tempTarget[index] = (targetColor[index] - sourceColor[index]) / divider;
+
+  double tempSource[3];
+  for (int index = 0; index < 3; index++)
+    tempSource[index] = sourceColor[index];
+
+  for (int index = 0; index < divider; index++)
+  {
+    for (int iterator = 0; iterator < 3; iterator++)
+      tempSource[iterator] = tempSource[iterator] + tempTarget[iterator];
+
+    blinkRGB(tempSource);
+    delay(sleep);
+  }
+}
+
+void blinkRGB(double color[]) {
+
+  analogWrite(BLINK_R, color[0]);
+  analogWrite(BLINK_G, color[1]);
+  analogWrite(BLINK_B, color[2]);
 }
 
 // -----
@@ -922,12 +923,12 @@ bool fillConfigurationData(unsigned short index, char address) {
     case 1:
       if (!fillFunctionData(address, countofCharacter, newReceivedBuffer)) {
         // Notify end user, status is device online
-        notifyBlink(0, Unconfirmed);
+        setRGBStatus(Unconfirmed);
         return false;
       }
 
       // Notify end user, status is device online
-      notifyBlink(0, Confirmed);
+      setRGBStatus(Confirmed);
 
       // Notify user
       for (unsigned short index = 0; index < deviceList[0].functionList.size(); index++) {
@@ -1159,7 +1160,7 @@ bool encodeData(unsigned short sizeofData, char data[]) {
       upperBound = modulusofGivenBuffer;
     else
       upperBound = DIVISOR_NUMBER;
-      
+
     // Change upper bound if module is available and index is on the last one
     if (index == sizeofGivenBuffer - 1 && modulusofGivenBuffer != 0)
       upperBound = modulusofGivenBuffer;
