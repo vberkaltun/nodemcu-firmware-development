@@ -17,7 +17,6 @@
 // Using cloudMQTT server for communication
 #define MQTT_USER "XXXXXXXX"
 #define MQTT_PASSWORD "XXXXXXXX"
-#define MQTT_SERVER "XXXXXXXX"
 #define MQTT_PORT 00000
 #define WIFI_SSID "XXXXXXXX"
 #define WIFI_PASSWORD "XXXXXXXX"
@@ -124,7 +123,8 @@ double colorOrange[3] = {210, 30, 0};
 // MQTT client objects, required for MQTT
 void callBack(char* topic, byte* payload, unsigned int length);
 WiFiClient wifiClient;
-PubSubClient mqttClient(MQTT_SERVER, MQTT_PORT, callBack, wifiClient);
+IPAddress mqttServer(37, 148, 210, 55);
+PubSubClient mqttClient(mqttServer, MQTT_PORT, callBack, wifiClient);
 
 // TEMPORARILY, will be delete on release
 #define WIRE_BEGIN 0x01
@@ -166,6 +166,9 @@ void setup() {
   // Initialize communication on Wire protocol
   Wire.begin(I2C_BUS_SDA, I2C_BUS_SCL);
   Wire.begin(WIRE_BEGIN);
+
+  WiFi.mode(WIFI_STA);
+  mqttClient.setServer(mqttServer, MQTT_PORT);
 
   // A name when discovering it as a port in ARDUINO IDE
   ArduinoOTA.setHostname(DEVICE_MODEL);
