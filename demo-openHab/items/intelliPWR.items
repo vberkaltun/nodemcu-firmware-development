@@ -10,10 +10,10 @@ Switch Logical_Switch_Check
 
 // ###################################################################
 
-Switch Logical1_Switch 						{mqtt=">[mosquitto:/Logical1/status:command:ON:1],>[mosquitto:/Logical1/status:command:OFF:0],
-												<[mosquitto:/Logical1/trigger:command:ON:1],<[mosquitto:/Logical1/trigger:command:OFF:0]"}
-Switch Logical2_Switch 						{mqtt=">[mosquitto:/Logical2/status:command:ON:1],>[mosquitto:/Logical2/status:command:OFF:0],
-												<[mosquitto:/Logical2/trigger:command:ON:1],<[mosquitto:/Logical2/trigger:command:OFF:0]"}
+Switch Logical1_Switch 						{mqtt=">[mosquitto:/0x50/status:command:ON:1],>[mosquitto:/0x50/status:command:OFF:0],
+												<[mosquitto:/0x50/trigger:command:ON:1],<[mosquitto:/0x50/trigger:command:OFF:0]"}
+Switch Logical2_Switch 						{mqtt=">[mosquitto:/0x51/status:command:ON:1],>[mosquitto:/0x51/status:command:OFF:0],
+												<[mosquitto:/0x51/trigger:command:ON:1],<[mosquitto:/0x51/trigger:command:OFF:0]"}
 
 Switch Logical1_isConnected					{mqtt="<[mosquitto:/0x50/isConnected:command:ON:1],<[mosquitto:/0x50/isConnected:command:OFF:0]"}
 Switch Logical2_isConnected					{mqtt="<[mosquitto:/0x51/isConnected:command:ON:1],<[mosquitto:/0x51/isConnected:command:OFF:0]"}
@@ -23,11 +23,11 @@ Switch Logical2_isConnected					{mqtt="<[mosquitto:/0x51/isConnected:command:ON:
 Color Led1_Color
 Color Led2_Color
 
-String Led1_RGB 							{mqtt=">[mosquitto:/Led1/color:state:*:default]"}
-String Led2_RGB 							{mqtt=">[mosquitto:/Led2/color:state:*:default]"}
+String Led1_RGB 							{mqtt=">[mosquitto:/0x52/color:state:*:default]"}
+String Led2_RGB 							{mqtt=">[mosquitto:/0x53/color:state:*:default]"}
 
-Switch Led1_Switch 							{mqtt=">[mosquitto:/Led1/status:command:ON:1],>[mosquitto:/Led1/status:command:OFF:0]"}
-Switch Led2_Switch 							{mqtt=">[mosquitto:/Led2/status:command:ON:1],>[mosquitto:/Led2/status:command:OFF:0]"}
+Switch Led1_Switch 							{mqtt=">[mosquitto:/0x52/status:command:ON:1],>[mosquitto:/0x52/status:command:OFF:0]"}
+Switch Led2_Switch 							{mqtt=">[mosquitto:/0x53/status:command:ON:1],>[mosquitto:/0x53/status:command:OFF:0]"}
 
 Switch Led1_isConnected						{mqtt="<[mosquitto:/0x52/isConnected:command:ON:1],<[mosquitto:/0x52/isConnected:command:OFF:0]"}
 Switch Led2_isConnected						{mqtt="<[mosquitto:/0x53/isConnected:command:ON:1],<[mosquitto:/0x53/isConnected:command:OFF:0]"}
